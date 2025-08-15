@@ -13,27 +13,30 @@ from PySide6.QtGui import (
     QIcon,
     QColor
 )
+from textgrid_manager import utils
 
 icons_dir = resources.files('textgrid_manager.resources') / 'fuge-icons'
 
-def scan_library(source_dir):
-    if source_dir is None:
-        return
-
-    source_dir = Path(source_dir)
-
-    list_ = []
-    for path in source_dir.glob('*.TextGrid'):
-        pass
-
-    return list_
-
 class TGTableModel(QAbstractTableModel):
 
-    def __init__(self, data):
+    def __init__(self, data=None):
         super().__init__()
-        self._data = data
-        self._headers = ['ID', 'Text']
+        if data is None:
+            # Temporal
+            self._data = []
+        self._headers = ['Text', 'Tier', 'start', 'end', 'file']
+        self._data = utils.scan_library(r'D:\Users\FN\Documents\projects\textgrid-manager\tests\data')
+        self.update_data(self._data)
+
+    def update_data(self, data):
+        list_ = []
+        for tg in data:
+            for tier in tg:
+                for item in tier:
+                    if item.text == '':
+                        continue
+                    list_.append(item)
+        self._data = list_
 
     def rowCount(self, index=QModelIndex()):
         return len(self._data)
@@ -51,30 +54,39 @@ class TGTableModel(QAbstractTableModel):
 
     def data(self, index=QModelIndex(), role=Qt.ItemDataRole.DisplayRole):
         row, column = index.row(), index.column()
-        dict_ = self._data[row]
+        item = self._data[row]
+        print(item.xmin)
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             if column == 0: # ID
-                return dict_['_request_id']
+                return item.text
 
-            elif column == 1: # Autores
-                authors = '; '.join(dict_['authors'])
-                return authors
+            elif column == 1: # tier
+                return item.parent.name
 
-            elif column in (2, 3, 4): # Documento
-                last_doc = dict_['documents'][-1]
-                if column == 2:
-                    return last_doc[0] # Título del documento
-                if column == 3:
-                    return QDate.fromString(last_doc[1], 'yyyy-MM-dd') # Fecha de documento
-                if column == 4:
-                    return last_doc[2] # Expediente
+            elif column == 2: # Time
+                return str(round(item.xmin, 2))
 
-            elif column == 5: # Estado
-                return dict_['status']
+            elif column == 3: # Time
+                return str(round(item.xmax, 2))
+    
+            #elif column == 4:
+                #return item.parent.parent.path.name
 
-            elif column == 6: # Dependencia
-                return dict_['office']
+            # elif column in (2, 3, 4): # Documento
+                # last_doc = dict_['documents'][-1]
+                # if column == 2:
+                    # return last_doc[0] # Título del documento
+                # if column == 3:
+                    # return QDate.fromString(last_doc[1], 'yyyy-MM-dd') # Fecha de documento
+                # if column == 4:
+                    # return last_doc[2] # Expediente
+
+            # elif column == 5: # Estado
+                # return dict_['status']
+
+            # elif column == 6: # Dependencia
+                # return dict_['office']
 
         # elif role == Qt.ItemDataRole.DecorationRole:
             # if column == 0:
@@ -90,24 +102,24 @@ class TGTableModel(QAbstractTableModel):
                 # elif status == -1:
                     # return QIcon(str(icons_dir / 'exclamation.png'))
 
-            elif column == 3:
-                date = index.data()
-                status = dict_['status']
+            # elif column == 3:
+                # date = index.data()
+                # status = dict_['status']
 
-                if date == '':
-                    return QColor(255,255,255)
+                # if date == '':
+                    # return QColor(255,255,255)
 
-                if status == 3:
-                    return QColor(255,255,255)
+                # if status == 3:
+                    # return QColor(255,255,255)
 
-                diff = date.daysTo(QDate.currentDate())
-                if diff > 30:
-                    return QColor(255,0,0) # red
-                elif diff > 20:
-                    return QColor(255,255,51) # yellow
-                else:
-                    return QColor(173,255,47) # green
-            return
+                # diff = date.daysTo(QDate.currentDate())
+                # if diff > 30:
+                    # return QColor(255,0,0) # red
+                # elif diff > 20:
+                    # return QColor(255,255,51) # yellow
+                # else:
+                    # return QColor(173,255,47) # green
+            # return
 
         # elif role == Qt.ItemDataRole.UserRole:
             # return dict_['_file_path'].parent

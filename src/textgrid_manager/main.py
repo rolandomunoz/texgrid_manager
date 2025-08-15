@@ -9,7 +9,6 @@ from PySide6.QtWidgets import (
 )
 
 from textgrid_manager.models import TGTableModel
-from textgrid_manager.models import scan_library
 
 class EditorView(QWidget):
 
