@@ -7,8 +7,7 @@ def scan_library(source_dir):
 
     list_ = []
     for path in source_dir.glob('*.TextGrid'):
-        tg = mtg.read_from_file(path)
+        tg = mtg.read_from_file(path, encoding='utf-8')
         tg.path = path
-        print(tg.path)
         list_.append(tg)
     return list_

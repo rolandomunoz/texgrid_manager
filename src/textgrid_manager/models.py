@@ -24,14 +24,15 @@ class TGTableModel(QAbstractTableModel):
         if data is None:
             # Temporal
             self._data = []
-        self._headers = ['Text', 'Tier', 'start', 'end', 'file']
-        self._data = utils.scan_library(r'D:\Users\FN\Documents\projects\textgrid-manager\tests\data')
+        self._headers = ['Filename', 'Tier', 'Text']
+        self._data = utils.scan_library(r'C:\Users\GILGAMESH\Documents\projects\texgrid-manager\tests\data\2018-02-08')
         self.update_data(self._data)
 
     def update_data(self, data):
         list_ = []
         for tg in data:
             for tier in tg:
+                tier.parent = tg
                 for item in tier:
                     if item.text == '':
                         continue
@@ -55,112 +56,28 @@ class TGTableModel(QAbstractTableModel):
     def data(self, index=QModelIndex(), role=Qt.ItemDataRole.DisplayRole):
         row, column = index.row(), index.column()
         item = self._data[row]
-        print(item.xmin)
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
-            if column == 0: # ID
-                return item.text
+            if column == 0: # File
+                return item.parent.parent.path.name
 
             elif column == 1: # tier
                 return item.parent.name
 
-            elif column == 2: # Time
-                return str(round(item.xmin, 2))
-
-            elif column == 3: # Time
-                return str(round(item.xmax, 2))
-    
-            #elif column == 4:
-                #return item.parent.parent.path.name
-
-            # elif column in (2, 3, 4): # Documento
-                # last_doc = dict_['documents'][-1]
-                # if column == 2:
-                    # return last_doc[0] # Título del documento
-                # if column == 3:
-                    # return QDate.fromString(last_doc[1], 'yyyy-MM-dd') # Fecha de documento
-                # if column == 4:
-                    # return last_doc[2] # Expediente
-
-            # elif column == 5: # Estado
-                # return dict_['status']
-
-            # elif column == 6: # Dependencia
-                # return dict_['office']
-
-        # elif role == Qt.ItemDataRole.DecorationRole:
-            # if column == 0:
-                # status = dict_['status']
-                # if status == 0:
-                    # return QIcon(str(icons_dir / 'disc-blue-new.png'))
-                # elif status == 1:
-                    # return QIcon(str(icons_dir / 'disc-burn.png'))
-                # elif status == 2:
-                    # return QIcon(str(icons_dir / 'eye.png'))
-                # elif status == 3:
-                    # return QIcon(str(icons_dir / 'tick-button.png'))
-                # elif status == -1:
-                    # return QIcon(str(icons_dir / 'exclamation.png'))
-
-            # elif column == 3:
-                # date = index.data()
-                # status = dict_['status']
-
-                # if date == '':
-                    # return QColor(255,255,255)
-
-                # if status == 3:
-                    # return QColor(255,255,255)
-
-                # diff = date.daysTo(QDate.currentDate())
-                # if diff > 30:
-                    # return QColor(255,0,0) # red
-                # elif diff > 20:
-                    # return QColor(255,255,51) # yellow
-                # else:
-                    # return QColor(173,255,47) # green
-            # return
-
-        # elif role == Qt.ItemDataRole.UserRole:
-            # return dict_['_file_path'].parent
+            elif column == 2: # Text
+                return item.text
 
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
-        # if role != Qt.ItemDataRole.EditRole:
-            # return
+        if role != Qt.ItemDataRole.EditRole:
+            return
 
-        # column, row = index.column(), index.row()
-        #   'ID', 'Responsable', 'Documento', 'Fecha', 'Expediente'
-        # if column == 1: # Authors
-            # self._data[row]['authors'] = value.split(';')
-            # self.save(row)
-            # return True
-
-        # if column == 2: # Doc title
-            # self._data[row]['documents'][-1][0] = value
-            # self.save(row)
-            # return True
-
-        # if column == 3: #Date
-            # self._data[row]['documents'][-1][1] = value.toString('yyyy-MM-dd')
-            # self.save(row)
-            # return True
-
-        # if column == 4: # Doc id
-            # self._data[row]['documents'][-1][2] = value
-            # self.save(row)
-            # return True
-
-        # elif column == 5:
-            # self._data[row]['status'] = int(value)
-            # self.save(row)
-            # return True
-
-        # elif column == 6:
-            # self._data[row]['office'] = value
-            # self.save(row)
-            # return True
-        # return False
-        pass
+        column, row = index.column(), index.row()
+        if column == 2: # Text
+            item = self._data[row]
+            item.text = value
+            item.parent.parent.write(item.parent.parent.path)
+            print(item.parent.parent.path)
+            return True
 
     def append_data(self, dict_):
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
@@ -171,7 +88,7 @@ class TGTableModel(QAbstractTableModel):
 
     def flags(self, index=QModelIndex()):
         myflags = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled 
-        if index.column():
+        if index.column() == 2:
             return myflags|Qt.ItemFlag.ItemIsEditable
         return myflags
 

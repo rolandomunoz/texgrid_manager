@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QTableView,
     QVBoxLayout,
 )
+from PySide6.QtCore import QSortFilterProxyModel
 
 from textgrid_manager.models import TGTableModel
 
@@ -19,9 +20,13 @@ class EditorView(QWidget):
     def init_ui(self):
         self.tableview = QTableView()
 
-        model=TGTableModel([])
-        self.tableview.setModel(model)
-        #self.tableview.setModel(proxymodel)
+        model = TGTableModel([])
+        proxy_model = QSortFilterProxyModel(model)
+        proxy_model.setSourceModel(model)
+        self.tableview.setModel(proxy_model)
+
+        proxy_model.setFilterRegularExpression("text")
+        proxy_model.setFilterKeyColumn(1)
 
         box_layout = QVBoxLayout()
         box_layout.addWidget(self.tableview)
