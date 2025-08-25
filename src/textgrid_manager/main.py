@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 from PySide6.QtCore import (
+    QSettings,
     QSortFilterProxyModel,
 )
 
@@ -16,6 +17,10 @@ from PySide6.QtGui import (
 )
 
 from textgrid_manager.models import TGTableModel
+from textgrid_manager import dialogs
+from textgrid_manager import utils
+
+settings = QSettings('Gilgamesh', 'TGManager')
 
 class EditorView(QWidget):
 
@@ -38,6 +43,13 @@ class EditorView(QWidget):
         box_layout.addWidget(self.tableview)
         self.setLayout(box_layout)
 
+    def load_textgrids_from_dir(self, src_dir):
+        tg_list = utils.scan_library(src_dir)
+
+        model = self.tableview.model().sourceModel()
+        model.update_data(tg_list)
+
+
 class TGManager(QMainWindow):
 
     def __init__(self):
@@ -48,6 +60,20 @@ class TGManager(QMainWindow):
         self.init_ui()
         self.init_actions()
         self.init_menubar()
+
+        # Init session
+        self.init_dlg = dialogs.InitWizard(self)
+        self.init_dlg.set_data_dir(settings.value('data_dir'))
+        self.init_dlg.set_dict_path(settings.value('dict_path'))
+        self.init_dlg.accepted.connect(self.init_session)
+        self.init_dlg.open()
+
+    def init_session(self):
+        data_dir = self.init_dlg.data_dir()
+        settings.setValue('data_dir', data_dir)
+        settings.setValue('dict_path', self.init_dlg.dict_path())
+
+        self.editor_view.load_textgrids_from_dir(data_dir)
 
     def init_actions(self):
         """
@@ -81,7 +107,19 @@ class TGManager(QMainWindow):
     def filter_table(self):
         pass
 
+def init_preferences():
+    if not settings.contains('data_dir'):
+        settings.setValue('data_dir', '')
+
+    if not settings.contains('dict_path '):
+        settings.setValue('dict_path', '')
+
+    if not settings.contains('mode '):
+        settings.setValue('mode', 'simple')
+
 def run_app():
+    init_preferences()
+
     app = QApplication([])
     app.setStyle('Fusion')
     main_window = TGManager()

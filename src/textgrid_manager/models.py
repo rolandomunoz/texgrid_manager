@@ -22,10 +22,9 @@ class TGTableModel(QAbstractTableModel):
     def __init__(self, data=None):
         super().__init__()
         if data is None:
-            # Temporal
-            self._data = []
+            data = []
+        self._data = data
         self._headers = ['Filename', 'Tier', 'Text']
-        self._data = utils.scan_library(r'C:\Users\GILGAMESH\Documents\projects\texgrid-manager\tests\data\2018-02-08')
         self.update_data(self._data)
 
     def update_data(self, data):
