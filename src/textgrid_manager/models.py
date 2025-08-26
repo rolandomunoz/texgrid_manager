@@ -36,7 +36,9 @@ class TGTableModel(QAbstractTableModel):
                     if item.text == '':
                         continue
                     list_.append(item)
+        self.beginResetModel()
         self._data = list_
+        self.endResetModel()
 
     def rowCount(self, index=QModelIndex()):
         return len(self._data)
@@ -91,22 +93,6 @@ class TGTableModel(QAbstractTableModel):
             return myflags|Qt.ItemFlag.ItemIsEditable
         return myflags
 
-    def refresh_library(self):
-        if self.location is None:
-            return
-        self.beginResetModel()
-        data = self.scan_library()
-        self.endResetModel()
-
     def data_collection(self):
         return self._data
-
-    def save(self, row):
-        # dict_ = self._data[row]
-        # file_path = dict_['_file_path']
-        # newdict = {k:v for k, v in dict_.items() if not k.startswith('_')}
-
-        # with open(file_path, 'w', encoding='utf-8') as f:
-            # json.dump(newdict, f, ensure_ascii=False, indent=4)
-        pass
 

@@ -55,3 +55,6 @@ class IntroPage(QWizardPage):
         self.registerField('data_dir', textgrid_ed)
         self.registerField('dict_path', dict_ed)
         self.registerField('mode', combo_box)
+
+class SelectTierPage(QWizardPage):
+    pass

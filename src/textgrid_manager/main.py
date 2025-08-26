@@ -30,14 +30,15 @@ class EditorView(QWidget):
 
     def init_ui(self):
         self.tableview = QTableView()
+        self.tableview.setSortingEnabled(True)
 
         model = TGTableModel([])
         proxy_model = QSortFilterProxyModel(model)
         proxy_model.setSourceModel(model)
         self.tableview.setModel(proxy_model)
 
-        proxy_model.setFilterRegularExpression("text")
-        proxy_model.setFilterKeyColumn(1)
+        #proxy_model.setFilterRegularExpression("text")
+        #proxy_model.setFilterKeyColumn(1)
 
         box_layout = QVBoxLayout()
         box_layout.addWidget(self.tableview)
@@ -45,10 +46,8 @@ class EditorView(QWidget):
 
     def load_textgrids_from_dir(self, src_dir):
         tg_list = utils.scan_library(src_dir)
-
         model = self.tableview.model().sourceModel()
         model.update_data(tg_list)
-
 
 class TGManager(QMainWindow):
 
