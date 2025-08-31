@@ -1,4 +1,6 @@
 import mytextgrid
+import subprocess
+
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -10,6 +12,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import (
     QSettings,
     QSortFilterProxyModel,
+    Qt,
 )
 
 from PySide6.QtGui import (
@@ -40,14 +43,23 @@ class EditorView(QWidget):
         #proxy_model.setFilterRegularExpression("text")
         #proxy_model.setFilterKeyColumn(1)
 
+        self.tableview.clicked.connect(self.open_in_praat)
+
         box_layout = QVBoxLayout()
         box_layout.addWidget(self.tableview)
         self.setLayout(box_layout)
 
+    def open_in_praat(self, index):
+        path = index.data(Qt.ItemDataRole.UserRole)[0]
+        praat_path = r"C:\Users\GILGAMESH\Tools\praat\praat6442_win-intel64\Praat.exe"
+        subprocess.run([praat_path, '--open', str(path)])
+
     def load_textgrids_from_dir(self, src_dir):
-        tg_list = utils.scan_library(src_dir)
+        headers, data = utils.create_aligned_tier_table(
+            src_dir, 'text', ['gloss', 'id']
+        )
         model = self.tableview.model().sourceModel()
-        model.update_data(tg_list)
+        model.set_full_dataset(headers, data)
 
 class TGManager(QMainWindow):
 

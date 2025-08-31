@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from importlib import resources
+from pprint import pprint
 
 from PySide6.QtCore import (
     QAbstractTableModel,
@@ -24,20 +25,12 @@ class TGTableModel(QAbstractTableModel):
         if data is None:
             data = []
         self._data = data
-        self._headers = ['Filename', 'Tier', 'Text']
-        self.update_data(self._data)
+        self._headers = []
 
-    def update_data(self, data):
-        list_ = []
-        for tg in data:
-            for tier in tg:
-                tier.parent = tg
-                for item in tier:
-                    if item.text == '':
-                        continue
-                    list_.append(item)
+    def set_full_dataset(self, headers, new_data):
         self.beginResetModel()
-        self._data = list_
+        self._headers = headers
+        self._data = new_data
         self.endResetModel()
 
     def rowCount(self, index=QModelIndex()):
@@ -56,29 +49,41 @@ class TGTableModel(QAbstractTableModel):
 
     def data(self, index=QModelIndex(), role=Qt.ItemDataRole.DisplayRole):
         row, column = index.row(), index.column()
-        item = self._data[row]
+        item = self._data[row][column]
 
-        if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
-            if column == 0: # File
-                return item.parent.parent.path.name
+        if item is None:
+            return ''
 
-            elif column == 1: # tier
-                return item.parent.name
-
-            elif column == 2: # Text
+        if role == Qt.ItemDataRole.DisplayRole:
+            if column == 0:
+                return item.name
+            else:
                 return item.text
+
+        if role == Qt.ItemDataRole.EditRole:
+            if column > 0:
+                return item.text
+
+        if role == Qt.ItemDataRole.UserRole:
+            return self._data[row]
+
+        return
 
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
         if role != Qt.ItemDataRole.EditRole:
             return
 
+
         column, row = index.column(), index.row()
-        if column == 2: # Text
-            item = self._data[row]
+
+        if column > 0: # Text
+            item = self._data[row][column]
+            if item is None:
+                return False
             item.text = value
-            item.parent.parent.write(item.parent.parent.path)
-            print(item.parent.parent.path)
+            item.parent.parent.write(item.parent.parent._path)
             return True
+        return False
 
     def append_data(self, dict_):
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
@@ -89,7 +94,7 @@ class TGTableModel(QAbstractTableModel):
 
     def flags(self, index=QModelIndex()):
         myflags = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled 
-        if index.column() == 2:
+        if index.column() > 0:
             return myflags|Qt.ItemFlag.ItemIsEditable
         return myflags
 
