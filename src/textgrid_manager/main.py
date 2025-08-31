@@ -1,12 +1,14 @@
 import mytextgrid
 import subprocess
+from importlib import resources
 
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QWidget,
-    QMenuBar,
     QTableView,
+    QMenuBar,
+    QToolBar,
     QVBoxLayout,
 )
 from PySide6.QtCore import (
@@ -17,12 +19,15 @@ from PySide6.QtCore import (
 
 from PySide6.QtGui import (
     QAction,
+    QIcon,
 )
 
 from textgrid_manager.models import TGTableModel
 from textgrid_manager import dialogs
 from textgrid_manager import utils
 
+resources_dir = resources.files('textgrid_manager.resources')
+icon_dir = resources_dir / 'icons'
 settings = QSettings('Gilgamesh', 'TGManager')
 
 class EditorView(QWidget):
@@ -43,16 +48,24 @@ class EditorView(QWidget):
         #proxy_model.setFilterRegularExpression("text")
         #proxy_model.setFilterKeyColumn(1)
 
-        self.tableview.clicked.connect(self.open_in_praat)
-
         box_layout = QVBoxLayout()
         box_layout.addWidget(self.tableview)
         self.setLayout(box_layout)
 
-    def open_in_praat(self, index):
-        path = index.data(Qt.ItemDataRole.UserRole)[0]
-        praat_path = r"C:\Users\GILGAMESH\Tools\praat\praat6442_win-intel64\Praat.exe"
-        subprocess.run([praat_path, '--open', str(path)])
+    def open_praat(self):
+        indexes = self.tableview.selectedIndexes()
+        if not indexes:
+            return
+        index = indexes[0]
+        textgrid_path = index.data(Qt.ItemDataRole.UserRole)[0]
+        sound_path = textgrid_path.with_suffix('.wav')
+        interval = index.data(Qt.ItemDataRole.UserRole)[1]
+
+        praat_path = r'Praat.exe'
+        script_path = resources_dir / 'open_file.praat'
+        subprocess.run(
+            [praat_path, '--new-send', script_path, textgrid_path, sound_path, str(interval.xmin), str(interval.xmax)]
+        )
 
     def load_textgrids_from_dir(self, src_dir):
         headers, data = utils.create_aligned_tier_table(
@@ -71,6 +84,7 @@ class TGManager(QMainWindow):
         self.init_ui()
         self.init_actions()
         self.init_menubar()
+        self.init_toolbar()
 
         # Init session
         self.init_dlg = dialogs.InitWizard(self)
@@ -90,6 +104,11 @@ class TGManager(QMainWindow):
         """
         Create actions
         """
+        self.open_praat_act = QAction('&Open selected in Praat', self)
+        self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
+        self.open_praat_act.triggered.connect(self.editor_view.open_praat)
+        self.open_praat_act.setShortcut('Alt+P')
+
         #self.quit_act = QAction('&Salir', self)
         #self.quit_act.triggered.connect(self.close)
 
@@ -110,6 +129,13 @@ class TGManager(QMainWindow):
         data_bar = menu_bar.addMenu('&Data')
         self.setMenuBar(menu_bar)
         data_bar.addAction(self.filter_act)
+        data_bar.addAction(self.open_praat_act)
+
+    def init_toolbar(self):
+        data_toolbar = QToolBar(self)
+        data_toolbar.addAction(self.open_praat_act)
+
+        self.addToolBar(data_toolbar)
 
     def init_ui(self):
         self.editor_view = EditorView()
@@ -122,11 +148,14 @@ def init_preferences():
     if not settings.contains('data_dir'):
         settings.setValue('data_dir', '')
 
-    if not settings.contains('dict_path '):
+    if not settings.contains('dict_path'):
         settings.setValue('dict_path', '')
 
-    if not settings.contains('mode '):
+    if not settings.contains('mode'):
         settings.setValue('mode', 'simple')
+
+    if not settings.contains('praat_path'):
+        settings.setValue('praat_path', '')
 
 def run_app():
     init_preferences()
