@@ -23,13 +23,14 @@ from PySide6.QtGui import (
 )
 
 from textgrid_manager.models import TGTableModel
-from textgrid_manager import dialogs
+from textgrid_manager.dialogs import InitWizard
+from textgrid_manager.dialogs import FilterDialog
 from textgrid_manager import utils
 
 resources_dir = resources.files('textgrid_manager.resources')
 icon_dir = resources_dir / 'icons'
 settings = QSettings('Gilgamesh', 'TGManager')
-
+  
 class EditorView(QWidget):
 
     def __init__(self):
@@ -37,23 +38,20 @@ class EditorView(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.tableview = QTableView()
-        self.tableview.setSortingEnabled(True)
+        self.table_view = QTableView()
+        self.table_view.setSortingEnabled(True)
 
         model = TGTableModel([])
         proxy_model = QSortFilterProxyModel(model)
         proxy_model.setSourceModel(model)
-        self.tableview.setModel(proxy_model)
-
-        #proxy_model.setFilterRegularExpression("text")
-        #proxy_model.setFilterKeyColumn(1)
+        self.table_view.setModel(proxy_model)
 
         box_layout = QVBoxLayout()
-        box_layout.addWidget(self.tableview)
+        box_layout.addWidget(self.table_view)
         self.setLayout(box_layout)
 
     def open_praat(self):
-        indexes = self.tableview.selectedIndexes()
+        indexes = self.table_view.selectedIndexes()
         if not indexes:
             return
         index = indexes[0]
@@ -67,11 +65,24 @@ class EditorView(QWidget):
             [praat_path, '--new-send', script_path, textgrid_path, sound_path, str(interval.xmin), str(interval.xmax)]
         )
 
+    def filter_table_view(self):
+        proxy_model = self.table_view.model()
+
+        # Get names of headers
+        ncols = proxy_model.columnCount()
+        orientation = Qt.Orientation.Horizontal
+        headers = [proxy_model.headerData(i, orientation) for i in range(ncols)]
+
+        filter_dlg = FilterDialog(self, headers)
+        filter_dlg.show()
+        #proxy_model.setFilterRegularExpression("juan")
+        #proxy_model.setFilterKeyColumn(1)
+
     def load_textgrids_from_dir(self, src_dir):
         headers, data = utils.create_aligned_tier_table(
             src_dir, 'text', ['gloss', 'id']
         )
-        model = self.tableview.model().sourceModel()
+        model = self.table_view.model().sourceModel()
         model.set_full_dataset(headers, data)
 
 class TGManager(QMainWindow):
@@ -87,7 +98,7 @@ class TGManager(QMainWindow):
         self.init_toolbar()
 
         # Init session
-        self.init_dlg = dialogs.InitWizard(self)
+        self.init_dlg = InitWizard(self)
         self.init_dlg.set_data_dir(settings.value('data_dir'))
         self.init_dlg.set_dict_path(settings.value('dict_path'))
         self.init_dlg.accepted.connect(self.init_session)
@@ -113,9 +124,9 @@ class TGManager(QMainWindow):
         #self.quit_act.triggered.connect(self.close)
 
         self.filter_act = QAction('&Filter', self)
-        #self.filter_act.setIcon(QIcon(gear_icon_path.as_posix()))
-        #self.filter_act.triggered.connect(self.show_config)
-        self.filter_act.setShortcut('F')
+        self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
+        self.filter_act.triggered.connect(self.editor_view.filter_table_view)
+        self.filter_act.setShortcut('Ctrl+F')
 
     def init_menubar(self):
         menu_bar = QMenuBar()
@@ -134,6 +145,7 @@ class TGManager(QMainWindow):
     def init_toolbar(self):
         data_toolbar = QToolBar(self)
         data_toolbar.addAction(self.open_praat_act)
+        data_toolbar.addAction(self.filter_act)
 
         self.addToolBar(data_toolbar)
 

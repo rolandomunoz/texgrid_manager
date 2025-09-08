@@ -40,7 +40,7 @@ class TGTableModel(QAbstractTableModel):
         return len(self._headers)
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
-        if role != Qt.ItemDataRole.DisplayRole:
+        if not role == Qt.ItemDataRole.DisplayRole:
             return
 
         if orientation == Qt.Orientation.Horizontal:
