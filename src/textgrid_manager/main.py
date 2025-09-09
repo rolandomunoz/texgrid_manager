@@ -24,7 +24,7 @@ from PySide6.QtGui import (
 
 from textgrid_manager.models import TGTableModel
 from textgrid_manager.dialogs import InitWizard
-from textgrid_manager.dialogs import FilterDialog
+from textgrid_manager.dialogs import FilterView
 from textgrid_manager import utils
 
 resources_dir = resources.files('textgrid_manager.resources')
@@ -33,9 +33,10 @@ settings = QSettings('Gilgamesh', 'TGManager')
   
 class EditorView(QWidget):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.init_ui()
+        self.init_filter_view()
 
     def init_ui(self):
         self.table_view = QTableView()
@@ -65,25 +66,23 @@ class EditorView(QWidget):
             [praat_path, '--new-send', script_path, textgrid_path, sound_path, str(interval.xmin), str(interval.xmax)]
         )
 
-    def filter_table_view(self):
+    def init_filter_view(self):
         proxy_model = self.table_view.model()
+        self.filter_dlg = FilterView(self, proxy_model)
 
-        # Get names of headers
-        ncols = proxy_model.columnCount()
-        orientation = Qt.Orientation.Horizontal
-        headers = [proxy_model.headerData(i, orientation) for i in range(ncols)]
-
-        filter_dlg = FilterDialog(self, headers)
-        filter_dlg.show()
-        #proxy_model.setFilterRegularExpression("juan")
-        #proxy_model.setFilterKeyColumn(1)
-
+    def view_filter(self, clicked):
+        if clicked:
+            self.filter_dlg.show()
+        else:
+            self.filter_dlg.hide()
+            
     def load_textgrids_from_dir(self, src_dir):
         headers, data = utils.create_aligned_tier_table(
             src_dir, 'text', ['gloss', 'id']
         )
         model = self.table_view.model().sourceModel()
         model.set_full_dataset(headers, data)
+        self.init_filter_view()
 
 class TGManager(QMainWindow):
 
@@ -125,8 +124,9 @@ class TGManager(QMainWindow):
 
         self.filter_act = QAction('&Filter', self)
         self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
-        self.filter_act.triggered.connect(self.editor_view.filter_table_view)
+        self.filter_act.triggered.connect(self.editor_view.view_filter)
         self.filter_act.setShortcut('Ctrl+F')
+        self.filter_act.setCheckable(True)
 
     def init_menubar(self):
         menu_bar = QMenuBar()
@@ -150,7 +150,7 @@ class TGManager(QMainWindow):
         self.addToolBar(data_toolbar)
 
     def init_ui(self):
-        self.editor_view = EditorView()
+        self.editor_view = EditorView(self)
         self.setCentralWidget(self.editor_view)
 
     def filter_table(self):
