@@ -23,13 +23,13 @@ from PySide6.QtGui import (
 )
 
 from textgrid_manager.models import TGTableModel
-from textgrid_manager.dialogs import InitWizard
+from textgrid_manager.dialogs import NewProjectDialog
 from textgrid_manager.dialogs import FilterView
 from textgrid_manager import utils
 
 resources_dir = resources.files('textgrid_manager.resources')
 icon_dir = resources_dir / 'icons'
-settings = QSettings('Gilgamesh', 'TGManager')
+settings = QSettings('Gilgamesh', 'TGExplorer')
   
 class EditorView(QWidget):
 
@@ -84,24 +84,17 @@ class EditorView(QWidget):
         model.set_full_dataset(headers, data)
         self.init_filter_view()
 
-class TGManager(QMainWindow):
+class TGExplorer(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('TGManager')
+        self.setWindowTitle('TGExplorer')
         self.setMinimumSize(800, 500)
         #self.showMaximized()
         self.init_ui()
         self.init_actions()
         self.init_menubar()
         self.init_toolbar()
-
-        # Init session
-        self.init_dlg = InitWizard(self)
-        self.init_dlg.set_data_dir(settings.value('data_dir'))
-        self.init_dlg.set_dict_path(settings.value('dict_path'))
-        self.init_dlg.accepted.connect(self.init_session)
-        self.init_dlg.open()
 
     def init_session(self):
         data_dir = self.init_dlg.data_dir()
@@ -114,6 +107,21 @@ class TGManager(QMainWindow):
         """
         Create actions
         """
+        self.new_project_act = QAction('&New project...', self)
+        self.new_project_act.setShortcut('Ctrl+N')
+        self.new_project_act.triggered.connect(self.on_new_project)
+
+        self.open_project_act = QAction('&Open project...', self)
+        self.open_project_act.setShortcut('Ctrl+O')
+        self.new_project_act.triggered.connect(self.on_open_project)
+
+        self.close_project_act = QAction('&Close project', self)
+        self.new_project_act.triggered.connect(self.on_close_project)
+
+        self.project_settings_act = QAction('&Project settings...', self)
+        self.project_settings_act.setShortcut('Ctrl+R')
+        self.new_project_act.triggered.connect(self.on_project_settings)
+
         self.open_praat_act = QAction('&Open selected in Praat', self)
         self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
         self.open_praat_act.triggered.connect(self.editor_view.open_praat)
@@ -131,8 +139,13 @@ class TGManager(QMainWindow):
     def init_menubar(self):
         menu_bar = QMenuBar()
 
-        files_bar = menu_bar.addMenu('&Files')
+        file_bar = menu_bar.addMenu('&File')
         self.setMenuBar(menu_bar)
+        file_bar.addAction(self.new_project_act)
+        file_bar.addAction(self.open_project_act)
+        file_bar.addAction(self.close_project_act)
+        file_bar.addSeparator()
+        file_bar.addAction(self.project_settings_act)
 
         edit_bar = menu_bar.addMenu('&Edit')
         self.setMenuBar(menu_bar)
@@ -156,6 +169,21 @@ class TGManager(QMainWindow):
     def filter_table(self):
         pass
 
+    def on_close_project(self):
+        pass
+
+    def on_new_project(self):
+        dlg = NewProjectDialog(self)
+        dlg.show()
+        a = dlg.result()
+        print(a)
+
+    def on_open_project(self):
+        pass
+
+    def on_project_settings(self):
+        pass
+
 def init_preferences():
     if not settings.contains('data_dir'):
         settings.setValue('data_dir', '')
@@ -174,6 +202,6 @@ def run_app():
 
     app = QApplication([])
     app.setStyle('Fusion')
-    main_window = TGManager()
+    main_window = TGExplorer()
     main_window.show()
     app.exec()

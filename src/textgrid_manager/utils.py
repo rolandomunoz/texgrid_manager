@@ -3,6 +3,26 @@ from pprint import pprint
 
 import mytextgrid
 
+
+def get_tier_names(source_dir):
+    source_dir = Path(source_dir)
+
+    names = []
+    for path in source_dir.rglob('*.TextGrid'):
+        try:
+            tg = mytextgrid.read_from_file(path, encoding='utf-8')
+            tg._path = path
+        except Exception as e:
+            print(f'Could not read {path}: {e}')
+            continue
+       
+        for tier in tg:
+            name = tier.name
+            if name in names:
+                continue
+            names.append(name)
+    return names
+
 def create_aligned_tier_table(source_dir, primary_tier_name, secondary_tier_names):
     """
     Reads TextGrid files from a source directory, aligns them based on a

@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import (
+    QDialog,
     QMessageBox,
     QWizard,
     QWizardPage,
@@ -8,6 +9,9 @@ from PySide6.QtWidgets import (
     QComboBox,
     QFormLayout,
 )
+
+class InitProject(QDialog):
+    pass
 
 class InitWizard(QWizard):
 
