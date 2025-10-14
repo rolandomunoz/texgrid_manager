@@ -64,6 +64,14 @@ class NewProjectDialog(QDialog):
             [t for t in self._tiers if t != text]
         )
 
+    def data(self):
+        dict_ = {
+            'src_dir': self.textgrid_dir.text(),
+            'primary_tier': self.primary_tier.currentText,
+            'secondary_tiers': []
+        }
+        return dict_
+
 class OpenProjectDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)

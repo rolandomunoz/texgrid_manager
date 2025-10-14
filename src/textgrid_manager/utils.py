@@ -83,7 +83,7 @@ def create_aligned_tier_table(source_dir, primary_tier_name, secondary_tier_name
                 aligned_data[interval_times] = row
 
             for tier in tg:
-                if tier == primary_tier_name:
+                if tier == primary_tier:
                     continue
                 if tier.name in secondary_tier_names:
                     for secondary_interval in tier:

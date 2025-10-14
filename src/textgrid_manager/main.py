@@ -33,8 +33,8 @@ settings = QSettings('Gilgamesh', 'TGExplorer')
   
 class EditorView(QWidget):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.init_ui()
         self.init_filter_view()
 
@@ -76,13 +76,14 @@ class EditorView(QWidget):
         else:
             self.filter_dlg.hide()
             
-    def load_textgrids_from_dir(self, src_dir):
+    def load_textgrids_from_dir(self, src_dir, primary_tier, secondary_tiers):
         headers, data = utils.create_aligned_tier_table(
-            src_dir, 'text', ['gloss', 'id']
+            src_dir, primary_tier, secondary_tiers
         )
-        model = self.table_view.model().sourceModel()
-        model.set_full_dataset(headers, data)
-        self.init_filter_view()
+        print(data)
+        #model = self.table_view.model().sourceModel()
+        #model.set_full_dataset(headers, data)
+        #self.init_filter_view()
 
 class TGExplorer(QMainWindow):
 
@@ -92,6 +93,7 @@ class TGExplorer(QMainWindow):
         self.setMinimumSize(800, 500)
         #self.showMaximized()
         self.init_ui()
+        self.init_dialogs()
         self.init_actions()
         self.init_menubar()
         self.init_toolbar()
@@ -166,6 +168,19 @@ class TGExplorer(QMainWindow):
         self.editor_view = EditorView(self)
         self.setCentralWidget(self.editor_view)
 
+    def init_dialogs(self):
+        self.new_project_dlg = NewProjectDialog(self)
+        self.new_project_dlg.finished.connect(self.load_project)
+
+    def load_project(self, result):
+        if result == 1:
+            dict_ = self.new_project_dlg.data()
+            self.editor_view.load_textgrids_from_dir(
+                dict_['src_dir'],
+                dict_['primary_tier'],
+                dict_['secondary_tiers'],
+            )
+
     def filter_table(self):
         pass
 
@@ -173,10 +188,7 @@ class TGExplorer(QMainWindow):
         pass
 
     def on_new_project(self):
-        dlg = NewProjectDialog(self)
-        dlg.show()
-        a = dlg.result()
-        print(a)
+        self.new_project_dlg.open()
 
     def on_open_project(self):
         pass
