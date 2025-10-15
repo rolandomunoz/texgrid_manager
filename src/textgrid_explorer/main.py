@@ -25,6 +25,7 @@ from PySide6.QtGui import (
 from textgrid_explorer.models import TGTableModel
 from textgrid_explorer.dialogs import NewProjectDialog
 from textgrid_explorer.dialogs import FilterByDialog
+from textgrid_explorer.dialogs import SearchAndReplaceDialog
 from textgrid_explorer import utils
 
 resources_dir = resources.files('textgrid_explorer.resources')
@@ -103,7 +104,7 @@ class TGExplorer(QMainWindow):
         """
         self.new_project_act = QAction('&New project...', self)
         self.new_project_act.setShortcut('Ctrl+N')
-        self.new_project_act.triggered.connect(self.open_new_project_dlg)
+        self.new_project_act.triggered.connect(self.new_project_dlg.open)
 
         self.open_project_act = QAction('&Open project...', self)
         self.open_project_act.setShortcut('Ctrl+O')
@@ -129,6 +130,9 @@ class TGExplorer(QMainWindow):
         self.filter_act.triggered.connect(self.open_filter_dlg)
         self.filter_act.setShortcut('Ctrl+F')
 
+        self.search_and_replace_act = QAction('&Search and replace', self)
+        self.search_and_replace_act.triggered.connect(self.open_search_and_replace_dlg)
+
     def init_menubar(self):
         menu_bar = QMenuBar()
 
@@ -147,6 +151,7 @@ class TGExplorer(QMainWindow):
         self.setMenuBar(menu_bar)
         data_bar.addAction(self.filter_act)
         data_bar.addAction(self.open_praat_act)
+        data_bar.addAction(self.search_and_replace_act)
 
     def init_toolbar(self):
         data_toolbar = QToolBar(self)
@@ -166,8 +171,8 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg = FilterByDialog(self)
         self.simple_filter_dlg.finished.connect(self.on_filter_rows)
 
-    def open_new_project_dlg(self):
-        self.new_project_dlg.open()
+        self.search_and_replace_dlg = SearchAndReplaceDialog()
+        self.search_and_replace_dlg.finished.connect(self.on_search_and_replace)
 
     def open_filter_dlg(self):
         proxy_model = self.editor_view.table_view.model()
@@ -175,11 +180,23 @@ class TGExplorer(QMainWindow):
         orientation = Qt.Orientation.Horizontal
         fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
 
-        old_fields = self.simple_filter_dlg.fields()
-        
-        if not fields == old_fields:
-            self.simple_filter_dlg.set_fields(fields)
         self.simple_filter_dlg.show()
+
+    def open_search_and_replace_dlg(self):
+        proxy_model = self.editor_view.table_view.model()
+        ncols = proxy_model.columnCount()
+        orientation = Qt.Orientation.Horizontal
+        fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
+
+        self.search_and_replace_dlg.set_fields(fields)
+        self.search_and_replace_dlg.show()
+
+    def on_search_and_replace(self):
+        r = self.search_and_replace_dlg.data()
+
+        proxy_model = self.editor_view.table_view.model()
+        model = proxy_model.sourceModel()
+        model.search_and_replace(r.field_index, r.search, r.replace)
 
     def on_enabled_buttons(self, b):
         self.close_project_act.setEnabled(b)

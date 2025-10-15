@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from importlib import resources
 from pprint import pprint
@@ -73,7 +74,6 @@ class TGTableModel(QAbstractTableModel):
         if role != Qt.ItemDataRole.EditRole:
             return
 
-
         column, row = index.column(), index.row()
 
         if column > 0: # Text
@@ -98,6 +98,15 @@ class TGTableModel(QAbstractTableModel):
             return myflags|Qt.ItemFlag.ItemIsEditable
         return myflags
 
+    def search_and_replace(self, column, search, replace):
+        p = re.compile(search)
+
+        for irow in range(self.rowCount()):
+            index = self.index(irow, column)
+            old_value = index.data()
+
+            new_value = re.sub(search, replace, old_value)
+            self.setData(index, new_value)
+
     def data_collection(self):
         return self._data
-
