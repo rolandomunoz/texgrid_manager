@@ -45,6 +45,8 @@ def create_aligned_tier_table(source_dir, primary_tier_name, secondary_tier_name
     """
     # Ensure the source directory path is a Path object
     source_dir = Path(source_dir)
+    if not source_dir.is_absolute():
+        return [], []
 
     # Initialize data structures
     aligned_data = {}
