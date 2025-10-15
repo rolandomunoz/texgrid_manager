@@ -24,7 +24,7 @@ from PySide6.QtGui import (
 
 from textgrid_explorer.models import TGTableModel
 from textgrid_explorer.dialogs import NewProjectDialog
-from textgrid_explorer.dialogs import FilterView
+from textgrid_explorer.dialogs import FilterByDialog
 from textgrid_explorer import utils
 
 resources_dir = resources.files('textgrid_explorer.resources')
@@ -36,7 +36,6 @@ class EditorView(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.init_ui()
-        self.init_filter_view()
 
     def init_ui(self):
         self.table_view = QTableView()
@@ -66,23 +65,23 @@ class EditorView(QWidget):
             [praat_path, '--new-send', script_path, textgrid_path, sound_path, str(interval.xmin), str(interval.xmax)]
         )
 
-    def init_filter_view(self):
+    def filter_rows(self, key_column, str_expression):
         proxy_model = self.table_view.model()
-        self.filter_dlg = FilterView(self, proxy_model)
+        proxy_model.setFilterKeyColumn(key_column)
+        proxy_model.setFilterRegularExpression(str_expression)
 
-    def view_filter(self, clicked):
-        if clicked:
-            self.filter_dlg.show()
-        else:
-            self.filter_dlg.hide()
-            
-    def load_textgrids_from_dir(self, src_dir, primary_tier, secondary_tiers):
+    def load_textgrids_from_dir(self, src_dir, primary_tier=None, secondary_tiers=None):
+        if primary_tier is None:
+            primary_tier = []
+
+        if secondary_tiers is None:
+            secondary_tiers = []
+
         headers, data = utils.create_aligned_tier_table(
             src_dir, primary_tier, secondary_tiers
         )
         model = self.table_view.model().sourceModel()
         model.set_full_dataset(headers, data)
-        self.init_filter_view()
 
 class TGExplorer(QMainWindow):
 
@@ -96,13 +95,7 @@ class TGExplorer(QMainWindow):
         self.init_actions()
         self.init_menubar()
         self.init_toolbar()
-
-    def init_session(self):
-        data_dir = self.init_dlg.data_dir()
-        settings.setValue('data_dir', data_dir)
-        settings.setValue('dict_path', self.init_dlg.dict_path())
-
-        self.editor_view.load_textgrids_from_dir(data_dir)
+        self.on_enabled_buttons(False)
 
     def init_actions(self):
         """
@@ -110,18 +103,18 @@ class TGExplorer(QMainWindow):
         """
         self.new_project_act = QAction('&New project...', self)
         self.new_project_act.setShortcut('Ctrl+N')
-        self.new_project_act.triggered.connect(self.on_new_project)
+        self.new_project_act.triggered.connect(self.open_new_project_dlg)
 
         self.open_project_act = QAction('&Open project...', self)
         self.open_project_act.setShortcut('Ctrl+O')
-        self.new_project_act.triggered.connect(self.on_open_project)
+        self.open_project_act.triggered.connect(self.on_open_project)
 
         self.close_project_act = QAction('&Close project', self)
-        self.new_project_act.triggered.connect(self.on_close_project)
+        self.close_project_act.triggered.connect(self.on_close_project)
 
         self.project_settings_act = QAction('&Project settings...', self)
         self.project_settings_act.setShortcut('Ctrl+R')
-        self.new_project_act.triggered.connect(self.on_project_settings)
+        self.project_settings_act.triggered.connect(self.on_project_settings)
 
         self.open_praat_act = QAction('&Open selected in Praat', self)
         self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
@@ -131,11 +124,10 @@ class TGExplorer(QMainWindow):
         #self.quit_act = QAction('&Salir', self)
         #self.quit_act.triggered.connect(self.close)
 
-        self.filter_act = QAction('&Filter', self)
+        self.filter_act = QAction('&Filter by', self)
         self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
-        self.filter_act.triggered.connect(self.editor_view.view_filter)
+        self.filter_act.triggered.connect(self.open_filter_dlg)
         self.filter_act.setShortcut('Ctrl+F')
-        self.filter_act.setCheckable(True)
 
     def init_menubar(self):
         menu_bar = QMenuBar()
@@ -169,9 +161,44 @@ class TGExplorer(QMainWindow):
 
     def init_dialogs(self):
         self.new_project_dlg = NewProjectDialog(self)
-        self.new_project_dlg.finished.connect(self.load_project)
+        self.new_project_dlg.finished.connect(self.on_load_project)
 
-    def load_project(self, result):
+        self.simple_filter_dlg = FilterByDialog(self)
+        self.simple_filter_dlg.finished.connect(self.on_filter_rows)
+
+    def open_new_project_dlg(self):
+        self.new_project_dlg.open()
+
+    def open_filter_dlg(self):
+        proxy_model = self.editor_view.table_view.model()
+        ncols = proxy_model.columnCount()
+        orientation = Qt.Orientation.Horizontal
+        fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
+
+        old_fields = self.simple_filter_dlg.fields()
+        
+        if not fields == old_fields:
+            self.simple_filter_dlg.set_fields(fields)
+        self.simple_filter_dlg.show()
+
+    def on_enabled_buttons(self, b):
+        self.close_project_act.setEnabled(b)
+        self.project_settings_act.setEnabled(b)
+        self.open_project_act.setEnabled(b)
+        self.open_praat_act.setEnabled(b)
+        self.filter_act.setEnabled(b)
+
+    def on_open_project(self):
+        pass
+
+    def on_project_settings(self):
+        pass
+
+    def on_close_project(self):
+        self.editor_view.load_textgrids_from_dir('')
+        self.on_enabled_buttons(False)
+
+    def on_load_project(self, result):
         if result == 1:
             dict_ = self.new_project_dlg.data()
             self.editor_view.load_textgrids_from_dir(
@@ -179,21 +206,12 @@ class TGExplorer(QMainWindow):
                 dict_['primary_tier'],
                 dict_['secondary_tiers'],
             )
+            self.on_enabled_buttons(True)
 
-    def filter_table(self):
-        pass
-
-    def on_close_project(self):
-        pass
-
-    def on_new_project(self):
-        self.new_project_dlg.open()
-
-    def on_open_project(self):
-        pass
-
-    def on_project_settings(self):
-        pass
+    def on_filter_rows(self):
+        if self.simple_filter_dlg.result() == 1:
+            field, value = self.simple_filter_dlg.data()
+            self.editor_view.filter_rows(field, value)
 
 def init_preferences():
     if not settings.contains('data_dir'):
