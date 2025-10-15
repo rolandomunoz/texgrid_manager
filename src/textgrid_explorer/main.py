@@ -80,10 +80,9 @@ class EditorView(QWidget):
         headers, data = utils.create_aligned_tier_table(
             src_dir, primary_tier, secondary_tiers
         )
-        print(data)
-        #model = self.table_view.model().sourceModel()
-        #model.set_full_dataset(headers, data)
-        #self.init_filter_view()
+        model = self.table_view.model().sourceModel()
+        model.set_full_dataset(headers, data)
+        self.init_filter_view()
 
 class TGExplorer(QMainWindow):
 

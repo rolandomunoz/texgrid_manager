@@ -67,7 +67,7 @@ class NewProjectDialog(QDialog):
     def data(self):
         dict_ = {
             'src_dir': self.textgrid_dir.text(),
-            'primary_tier': self.primary_tier.currentText,
+            'primary_tier': self.primary_tier.currentText(),
             'secondary_tiers': []
         }
         return dict_
