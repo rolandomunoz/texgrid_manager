@@ -20,7 +20,7 @@ class NewProjectDialog(QDialog):
         self._tiers = []
 
     def init_ui(self):
-        self.textgrid_dir = QLineEdit(r'C:\Users\GILGAMESH\Documents\projects\texgrid-explorer\tests\data\2018-02-08', self)
+        self.textgrid_dir = QLineEdit(r'', self)
         update_btn = QPushButton('&Scan TextGrid files', self)
         update_btn.clicked.connect(self.on_scan_tiers)
 
@@ -65,10 +65,11 @@ class NewProjectDialog(QDialog):
         )
 
     def data(self):
+        tiers = [self.secondary_tiers.item(i).text() for i in range(self.secondary_tiers.count())]
         dict_ = {
             'src_dir': self.textgrid_dir.text(),
             'primary_tier': self.primary_tier.currentText(),
-            'secondary_tiers': []
+            'secondary_tiers': tiers
         }
         return dict_
 
