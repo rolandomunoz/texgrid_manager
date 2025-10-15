@@ -51,9 +51,10 @@ class FilterByDialog(QDialog):
         return self._fields
 
     def set_fields(self, fields):
-        self._fields = fields
-        self.headers_box.clear()
-        self.headers_box.addItems(self._fields)
+        if not self._fields == fields:
+            self._fields = fields
+            self.headers_box.clear()
+            self.headers_box.addItems(self._fields)
 
     def data(self):
         field_index = -1

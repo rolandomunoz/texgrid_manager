@@ -180,6 +180,7 @@ class TGExplorer(QMainWindow):
         orientation = Qt.Orientation.Horizontal
         fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
 
+        self.simple_filter_dlg.set_fields(fields)
         self.simple_filter_dlg.show()
 
     def open_search_and_replace_dlg(self):

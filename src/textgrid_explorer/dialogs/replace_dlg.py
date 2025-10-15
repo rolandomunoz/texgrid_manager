@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
 )
 
-
 Result = namedtuple('Results', ['field_index', 'field', 'search', 'replace'])
 
 class SearchAndReplaceDialog(QDialog):
@@ -52,9 +51,10 @@ class SearchAndReplaceDialog(QDialog):
         self.setLayout(main_box)
 
     def set_fields(self, fields):
-        self._fields = fields
-        self.fields_box.clear()
-        self.fields_box.addItems(fields)
+        if not self._fields == fields:
+            self._fields = fields
+            self.fields_box.clear()
+            self.fields_box.addItems(fields)
 
     def data(self):
         r = Result(
