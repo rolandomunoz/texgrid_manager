@@ -4,10 +4,13 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QComboBox,
     QPushButton,
+    QPushButton,
+    QListWidgetItem,
     QListWidget,
     QVBoxLayout,
     QHBoxLayout,
 )
+from PySide6.QtCore import Qt
 
 from textgrid_explorer import utils
 
@@ -60,12 +63,21 @@ class NewProjectDialog(QDialog):
 
     def on_primary_tier(self, text):
         self.secondary_tiers.clear()
-        self.secondary_tiers.addItems(
-            [t for t in self._tiers if t != text]
-        )
+        for t in self._tiers:
+            if t == text:
+                continue
+            item = QListWidgetItem(t)
+            item.setFlags(item.flags()|Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Unchecked)
+            self.secondary_tiers.addItem(item)
 
     def data(self):
-        tiers = [self.secondary_tiers.item(i).text() for i in range(self.secondary_tiers.count())]
+        tiers = []
+        for i in range(self.secondary_tiers.count()):
+            item = self.secondary_tiers.item(i)
+            if item.checkState() == Qt.CheckState.Checked:
+                tiers.append(item.text())
+
         dict_ = {
             'src_dir': self.textgrid_dir.text(),
             'primary_tier': self.primary_tier.currentText(),
