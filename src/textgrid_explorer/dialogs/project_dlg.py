@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
 )
 
-from textgrid_manager import utils
+from textgrid_explorer import utils
 
 class NewProjectDialog(QDialog):
 

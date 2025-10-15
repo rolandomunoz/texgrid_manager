@@ -22,12 +22,12 @@ from PySide6.QtGui import (
     QIcon,
 )
 
-from textgrid_manager.models import TGTableModel
-from textgrid_manager.dialogs import NewProjectDialog
-from textgrid_manager.dialogs import FilterView
-from textgrid_manager import utils
+from textgrid_explorer.models import TGTableModel
+from textgrid_explorer.dialogs import NewProjectDialog
+from textgrid_explorer.dialogs import FilterView
+from textgrid_explorer import utils
 
-resources_dir = resources.files('textgrid_manager.resources')
+resources_dir = resources.files('textgrid_explorer.resources')
 icon_dir = resources_dir / 'icons'
 settings = QSettings('Gilgamesh', 'TGExplorer')
   

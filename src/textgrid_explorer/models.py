@@ -14,9 +14,9 @@ from PySide6.QtGui import (
     QIcon,
     QColor
 )
-from textgrid_manager import utils
+from textgrid_explorer import utils
 
-icons_dir = resources.files('textgrid_manager.resources') / 'fuge-icons'
+icons_dir = resources.files('textgrid_explorer.resources') / 'fuge-icons'
 
 class TGTableModel(QAbstractTableModel):
 
