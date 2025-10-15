@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from PySide6.QtWidgets import (
     QDialog,
+    QMessageBox,
     QLabel,
     QLineEdit,
     QComboBox,
@@ -70,6 +73,18 @@ class NewProjectDialog(QDialog):
             item.setFlags(item.flags()|Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(Qt.CheckState.Unchecked)
             self.secondary_tiers.addItem(item)
+
+    def accept(self):
+        # Check inserted values
+        src_dir = Path(self.textgrid_dir.text())
+        if not src_dir.is_absolute() or not src_dir.is_dir():
+            QMessageBox.warning(self, 'Ups!', 'The TextGrid directory does not exist!')
+            return
+
+        if self.primary_tier.currentText() == '':
+            QMessageBox.warning(self, 'Ups!', 'Select a primary tier!')
+            return
+        super().accept()
 
     def data(self):
         tiers = []
