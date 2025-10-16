@@ -20,11 +20,12 @@ editor: tg
 Zoom: start_selection-0.1, end_selection+0.1
 Select: start_selection, end_selection
 
+
 beginPause: "TGManager"
 clicked = endPause: "Save", "Quit", 2, 2
 
 if clicked == 1
-    Save as text file: textgrid_path$
+    Save whole TextGrid as text file: textgrid_path$
 endif
 
 endeditor
