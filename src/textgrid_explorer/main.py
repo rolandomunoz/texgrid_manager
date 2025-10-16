@@ -166,13 +166,13 @@ class TGExplorer(QMainWindow):
 
     def init_dialogs(self):
         self.new_project_dlg = NewProjectDialog(self)
-        self.new_project_dlg.finished.connect(self.on_load_project)
+        self.new_project_dlg.accepted.connect(self.on_load_project)
 
         self.simple_filter_dlg = FilterByDialog(self)
-        self.simple_filter_dlg.finished.connect(self.on_filter_rows)
+        self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
         self.search_and_replace_dlg = SearchAndReplaceDialog()
-        self.search_and_replace_dlg.finished.connect(self.on_search_and_replace)
+        self.search_and_replace_dlg.accepted.connect(self.on_search_and_replace)
 
     def open_filter_dlg(self):
         proxy_model = self.editor_view.table_view.model()
@@ -216,20 +216,18 @@ class TGExplorer(QMainWindow):
         self.editor_view.load_textgrids_from_dir('')
         self.on_enabled_buttons(False)
 
-    def on_load_project(self, result):
-        if result == 1:
-            dict_ = self.new_project_dlg.data()
-            self.editor_view.load_textgrids_from_dir(
-                dict_['src_dir'],
-                dict_['primary_tier'],
-                dict_['secondary_tiers'],
-            )
-            self.on_enabled_buttons(True)
+    def on_load_project(self):
+        dict_ = self.new_project_dlg.data()
+        self.editor_view.load_textgrids_from_dir(
+            dict_['src_dir'],
+            dict_['primary_tier'],
+            dict_['secondary_tiers'],
+        )
+        self.on_enabled_buttons(True)
 
     def on_filter_rows(self):
-        if self.simple_filter_dlg.result() == 1:
-            field, value = self.simple_filter_dlg.data()
-            self.editor_view.filter_rows(field, value)
+        field, value = self.simple_filter_dlg.data()
+        self.editor_view.filter_rows(field, value)
 
 def init_preferences():
     if not settings.contains('data_dir'):
