@@ -1,4 +1,3 @@
-import mytextgrid
 import subprocess
 from importlib import resources
 
@@ -26,6 +25,7 @@ from textgrid_explorer.models import TGTableModel
 from textgrid_explorer.dialogs import NewProjectDialog
 from textgrid_explorer.dialogs import FilterByDialog
 from textgrid_explorer.dialogs import SearchAndReplaceDialog
+from textgrid_explorer.dialogs import MapAnnotationDialog
 from textgrid_explorer import utils
 
 resources_dir = resources.files('textgrid_explorer.resources')
@@ -125,13 +125,16 @@ class TGExplorer(QMainWindow):
         #self.quit_act = QAction('&Salir', self)
         #self.quit_act.triggered.connect(self.close)
 
-        self.filter_act = QAction('&Filter by', self)
+        self.filter_act = QAction('&Filter by...', self)
         self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
         self.filter_act.triggered.connect(self.open_filter_dlg)
         self.filter_act.setShortcut('Ctrl+F')
 
-        self.search_and_replace_act = QAction('&Search and replace', self)
+        self.search_and_replace_act = QAction('&Search and replace...', self)
         self.search_and_replace_act.triggered.connect(self.open_search_and_replace_dlg)
+
+        self.map_annotation_act = QAction('&Map annotation...', self)
+        self.map_annotation_act.triggered.connect(self.open_map_annotation_dlg)
 
     def init_menubar(self):
         menu_bar = QMenuBar()
@@ -152,6 +155,7 @@ class TGExplorer(QMainWindow):
         data_bar.addAction(self.filter_act)
         data_bar.addAction(self.open_praat_act)
         data_bar.addAction(self.search_and_replace_act)
+        data_bar.addAction(self.map_annotation_act)
 
     def init_toolbar(self):
         data_toolbar = QToolBar(self)
@@ -174,6 +178,9 @@ class TGExplorer(QMainWindow):
         self.search_and_replace_dlg = SearchAndReplaceDialog()
         self.search_and_replace_dlg.accepted.connect(self.on_search_and_replace)
 
+        self.map_annotations_dlg = SearchAndReplaceDialog()
+        self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
+
     def open_filter_dlg(self):
         proxy_model = self.editor_view.table_view.model()
         ncols = proxy_model.columnCount()
@@ -192,12 +199,18 @@ class TGExplorer(QMainWindow):
         self.search_and_replace_dlg.set_fields(fields)
         self.search_and_replace_dlg.show()
 
+    def open_map_annotation_dlg(self):
+        pass
+
     def on_search_and_replace(self):
         r = self.search_and_replace_dlg.data()
 
         proxy_model = self.editor_view.table_view.model()
         model = proxy_model.sourceModel()
         model.search_and_replace(r.field_index, r.search, r.replace)
+
+    def on_map_annotations(self):
+        pass
 
     def on_enabled_buttons(self, b):
         self.close_project_act.setEnabled(b)
