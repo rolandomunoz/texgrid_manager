@@ -8,9 +8,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QHBoxLayout,
+    QFormLayout
 )
-
-Result = namedtuple('Results', ['field_index', 'field', 'search', 'replace'])
 
 class SearchAndReplaceDialog(QDialog):
 
@@ -57,6 +56,9 @@ class SearchAndReplaceDialog(QDialog):
             self.fields_box.addItems(fields)
 
     def data(self):
+        Result = namedtuple(
+            'Results', ['field_index', 'field', 'search', 'replace']
+        )
         r = Result(
             self.fields_box.currentIndex(),
             self.fields_box.currentText(),
@@ -74,8 +76,12 @@ class MapAnnotationDialog(QDialog):
         self.init_ui()
 
     def init_ui(self):
-        self.fields_box = QComboBox(self)
-        self.fields_box.addItems(self._fields)
+        self.src_tier_box = QComboBox(self)
+        self.src_tier_box.addItems(self._fields)
+        self.src_tier_box.currentTextChanged.connect(self.on_dst_tier)
+
+        self.dst_tier_box = QComboBox(self)
+        #self.dst_tier_box.addItems(self._fields)
 
         self.search_ed = QLineEdit(self)
         self.replace_ed = QLineEdit(self)
@@ -90,15 +96,14 @@ class MapAnnotationDialog(QDialog):
         btn_box.addWidget(ok_btn)
         btn_box.addWidget(cancel_btn)
 
+        form = QFormLayout()
+        form.addRow('From:', self.src_tier_box)
+        form.addRow('To:', self.dst_tier_box)
+        form.addRow('Find what:', self.search_ed)
+        form.addRow('Replace with:', self.replace_ed)
+
         main_box = QVBoxLayout()
-        main_box.addWidget(QLabel('Column name:'))
-        main_box.addWidget(self.fields_box)
-
-        main_box.addWidget(QLabel('Find what:'))
-        main_box.addWidget(self.search_ed)
-
-        main_box.addWidget(QLabel('Replace with:'))
-        main_box.addWidget(self.replace_ed)
+        main_box.addLayout(form)
         main_box.addLayout(btn_box)
 
         self.setLayout(main_box)
@@ -106,14 +111,28 @@ class MapAnnotationDialog(QDialog):
     def set_fields(self, fields):
         if not self._fields == fields:
             self._fields = fields
-            self.fields_box.clear()
-            self.fields_box.addItems(fields)
+            self.src_tier_box.clear()
+            self.src_tier_box.addItems(fields)
+
+    def on_dst_tier(self):
+        selected_text = self.src_tier_box.currentText()
+        dst_fields = [f for f in self._fields if f != selected_text]
+        self.dst_tier_box.clear()
+        self.dst_tier_box.addItems(dst_fields)
 
     def data(self):
-        r = Result(
-            self.fields_box.currentIndex(),
-            self.fields_box.currentText(),
+        Results = namedtuple(
+            'Results', ['src_column', 'src_column_index', 'dst_column', 'dst_column_index', 'search', 'replace']
+        )
+        src_column = self.src_tier_box.currentText()
+        dst_column = self.dst_tier_box.currentText()
+        
+        r = Results(
+            src_column,
+            self._fields.index(src_column),
+            dst_column,
+            self._fields.index(dst_column),
             self.search_ed.text(),
-            self.replace_ed.text()
+            self.replace_ed.text(),
         )
         return r

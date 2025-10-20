@@ -98,15 +98,46 @@ class TGTableModel(QAbstractTableModel):
             return myflags|Qt.ItemFlag.ItemIsEditable
         return myflags
 
-    def search_and_replace(self, column, search, replace):
-        p = re.compile(search)
+    def search_and_replace(self, pattern, repl, src_column, dst_column):
+        '''
+        Searches for a regex pattern in one column and replaces the matching
+        substrings in another column with a specified replacement string.
+
+        Parameters
+        ----------
+        pattern : str
+            The regular expression (regex) pattern to search for in the source column's strings.
+        repl : str
+            The replacement string. This is substituted for all non-overlapping
+            occurrences of the pattern in the source string. Backreferences
+            (e.g., `\1`, `\g<name>`) are supported.
+        src_column : int
+            The **zero-based index** of the column whose cell data is used to
+            perform the search.
+        dst_column : int
+            The **zero-based index** of the column where the new, potentially
+            modified, string value will be written.
+        '''
+        p = re.compile(pattern)
 
         for irow in range(self.rowCount()):
-            index = self.index(irow, column)
-            old_value = index.data()
+            src_index = self.index(irow, src_column)
+            dst_index = self.index(irow, dst_column)
 
-            new_value = re.sub(search, replace, old_value)
-            self.setData(index, new_value)
+            src_str = src_index.data()
+            if p.search(src_str):
+                new_str = p.sub(repl, src_str)
+                self.setData(dst_index, new_str)
+        p = re.compile(pattern)
+
+        for irow in range(self.rowCount()):
+            src_index = self.index(irow, src_column)
+            dst_index = self.index(irow, dst_column)
+
+            src_str = src_index.data()
+            if p.search(src_str):
+                new_str = p.sub(repl, src_str)
+                self.setData(dst_index, new_str)
 
     def data_collection(self):
         return self._data

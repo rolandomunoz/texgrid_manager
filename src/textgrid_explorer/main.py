@@ -178,7 +178,7 @@ class TGExplorer(QMainWindow):
         self.search_and_replace_dlg = SearchAndReplaceDialog()
         self.search_and_replace_dlg.accepted.connect(self.on_search_and_replace)
 
-        self.map_annotations_dlg = SearchAndReplaceDialog()
+        self.map_annotations_dlg = MapAnnotationDialog()
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
 
     def open_filter_dlg(self):
@@ -200,17 +200,34 @@ class TGExplorer(QMainWindow):
         self.search_and_replace_dlg.show()
 
     def open_map_annotation_dlg(self):
-        pass
+        """
+        Prepare and show non-modal dialog.
+        """
+        proxy_model = self.editor_view.table_view.model()
+        ncols = proxy_model.columnCount()
+        orientation = Qt.Orientation.Horizontal
+        fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
+
+        self.map_annotations_dlg.set_fields(fields)
+        self.map_annotations_dlg.show()
 
     def on_search_and_replace(self):
         r = self.search_and_replace_dlg.data()
 
         proxy_model = self.editor_view.table_view.model()
         model = proxy_model.sourceModel()
-        model.search_and_replace(r.field_index, r.search, r.replace)
+        model.search_and_replace(
+            r.search, r.replace, r.field_index, r.field_index, 
+        )
 
     def on_map_annotations(self):
-        pass
+        r = self.map_annotations_dlg.data()
+
+        proxy_model = self.editor_view.table_view.model()
+        model = proxy_model.sourceModel()
+        model.search_and_replace(
+            r.search, r.replace, r.src_column_index, r.dst_column_index, 
+        )
 
     def on_enabled_buttons(self, b):
         self.close_project_act.setEnabled(b)
@@ -218,6 +235,8 @@ class TGExplorer(QMainWindow):
         self.open_project_act.setEnabled(b)
         self.open_praat_act.setEnabled(b)
         self.filter_act.setEnabled(b)
+        self.search_and_replace_act.setEnabled(b)
+        self.map_annotation_act.setEnabled(b)
 
     def on_open_project(self):
         pass
