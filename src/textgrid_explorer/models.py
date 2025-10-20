@@ -109,8 +109,7 @@ class TGTableModel(QAbstractTableModel):
             The regular expression (regex) pattern to search for in the source column's strings.
         repl : str
             The replacement string. This is substituted for all non-overlapping
-            occurrences of the pattern in the source string. Backreferences
-            (e.g., `\1`, `\g<name>`) are supported.
+            occurrences of the pattern in the source string.
         src_column : int
             The **zero-based index** of the column whose cell data is used to
             perform the search.
