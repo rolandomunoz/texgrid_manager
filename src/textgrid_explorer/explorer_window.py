@@ -25,6 +25,7 @@ from textgrid_explorer.dialogs import NewProjectDialog
 from textgrid_explorer.dialogs import FilterByDialog
 from textgrid_explorer.dialogs import SearchAndReplaceDialog
 from textgrid_explorer.dialogs import MapAnnotationDialog
+from textgrid_explorer.dialogs import PreferencesDialog
 from textgrid_explorer import utils
 
 resources_dir = resources.files('textgrid_explorer.resources')
@@ -59,10 +60,11 @@ class EditorView(QWidget):
         sound_path = textgrid_path.with_suffix('.wav')
         interval = index.data(Qt.ItemDataRole.UserRole)[1]
 
-        praat_path = r'Praat.exe'
+        praat_path = settings.value('praat/path')
+        praat_maximize_audibility = settings.value('praat/maximize_audibility')
         script_path = resources_dir / 'open_file.praat'
         subprocess.run(
-            [praat_path, '--new-send', script_path, textgrid_path, sound_path, str(interval.xmin), str(interval.xmax)]
+            [praat_path, '--hide-picture', '--new-send', script_path, textgrid_path, sound_path, str(praat_maximize_audibility), str(interval.xmin), str(interval.xmax)]
         )
 
     def filter_rows(self, key_column, str_expression):
@@ -101,9 +103,9 @@ class TGExplorer(QMainWindow):
         """
         Create actions
         """
-        self.preferences_act = QAction('Preferences...', self)
-        #self.preferences_act.triggered.connect(self.settings_dlg)
-        self.preferences_act.setIcon(QIcon(str(icon_dir/'preferences-desktop.png')))
+        self.preferences_act = QAction('&Preferences...', self)
+        self.preferences_act.triggered.connect(self.open_preferences_dlg)
+        #self.preferences_act.setIcon(QIcon(str(icon_dir/'preferences-desktop.png')))
 
         self.new_project_act = QAction('&New project...', self)
         self.new_project_act.setShortcut('Ctrl+N')
@@ -143,7 +145,6 @@ class TGExplorer(QMainWindow):
         menu_bar = QMenuBar()
 
         file_bar = menu_bar.addMenu('&File')
-        self.setMenuBar(menu_bar)
         file_bar.addAction(self.new_project_act)
         file_bar.addAction(self.open_project_act)
         file_bar.addAction(self.close_project_act)
@@ -151,15 +152,16 @@ class TGExplorer(QMainWindow):
         file_bar.addAction(self.project_settings_act)
 
         edit_bar = menu_bar.addMenu('&Edit')
+        edit_bar.addAction(self.search_and_replace_act)
+        edit_bar.addAction(self.map_annotation_act)
+        edit_bar.addSeparator()
         edit_bar.addAction(self.preferences_act)
-        self.setMenuBar(menu_bar)
 
         data_bar = menu_bar.addMenu('&Data')
-        self.setMenuBar(menu_bar)
         data_bar.addAction(self.filter_act)
         data_bar.addAction(self.open_praat_act)
-        data_bar.addAction(self.search_and_replace_act)
-        data_bar.addAction(self.map_annotation_act)
+
+        self.setMenuBar(menu_bar)
 
     def init_toolbar(self):
         data_toolbar = QToolBar(self)
@@ -173,6 +175,9 @@ class TGExplorer(QMainWindow):
         self.setCentralWidget(self.editor_view)
 
     def init_dialogs(self):
+        self.preferences_dlg = PreferencesDialog(self)
+        self.preferences_dlg.accepted.connect(self.on_preferences)
+
         self.new_project_dlg = NewProjectDialog(self)
         self.new_project_dlg.accepted.connect(self.on_load_project)
 
@@ -184,6 +189,13 @@ class TGExplorer(QMainWindow):
 
         self.map_annotations_dlg = MapAnnotationDialog()
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
+
+    def open_preferences_dlg(self):
+        praat_path = settings.value('praat/path')
+        praat_maximize_audibility = settings.value('praat/maximize_audibility')
+
+        self.preferences_dlg.set_data(praat_path, int(praat_maximize_audibility))
+        self.preferences_dlg.show()
 
     def open_filter_dlg(self):
         proxy_model = self.editor_view.table_view.model()
@@ -264,3 +276,8 @@ class TGExplorer(QMainWindow):
     def on_filter_rows(self):
         field, value = self.simple_filter_dlg.data()
         self.editor_view.filter_rows(field, value)
+
+    def on_preferences(self):
+        preferences = self.preferences_dlg.data()
+        settings.setValue('praat/path', preferences.praat_path)
+        settings.setValue('praat/maximize_audibility', preferences.praat_maximize_audibility)

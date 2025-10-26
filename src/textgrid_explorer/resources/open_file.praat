@@ -1,6 +1,7 @@
 form: "Open file"
     infile: "Textgrid path", ""
     infile: "Sound path", ""
+    boolean: "Maximize audibility", "1"
     real: "Start_selection", "0.0"
     real: "End_selection", "0.1"
 endform
@@ -8,8 +9,12 @@ endform
 tg = Read from file: textgrid_path$
 objects# = {tg}
 if fileReadable(sound_path$)
-    sd = Read from file: sound_path$
-    Scale peak: 0.99
+    if maximize_audibility == 1
+        sd = Read from file: sound_path$
+        Scale peak: 0.99
+    else
+        sd = Open long sound file: sound_path$
+    endif
     objects# = {tg, sd}
 endif
 
