@@ -4,6 +4,6 @@ from pathlib import Path
 package_dir = Path(__file__).parent.joinpath('..', 'src').resolve()
 sys.path.insert(0, str(package_dir))
 
-from textgrid_explorer import main
+import textgrid_explorer
 
-main.run_app()
+textgrid_explorer.main()

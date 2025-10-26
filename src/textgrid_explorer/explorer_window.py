@@ -2,7 +2,6 @@ import subprocess
 from importlib import resources
 
 from PySide6.QtWidgets import (
-    QApplication,
     QMainWindow,
     QWidget,
     QTableView,
@@ -102,6 +101,10 @@ class TGExplorer(QMainWindow):
         """
         Create actions
         """
+        self.preferences_act = QAction('Preferences...', self)
+        #self.preferences_act.triggered.connect(self.settings_dlg)
+        self.preferences_act.setIcon(QIcon(str(icon_dir/'preferences-desktop.png')))
+
         self.new_project_act = QAction('&New project...', self)
         self.new_project_act.setShortcut('Ctrl+N')
         self.new_project_act.triggered.connect(self.new_project_dlg.open)
@@ -148,6 +151,7 @@ class TGExplorer(QMainWindow):
         file_bar.addAction(self.project_settings_act)
 
         edit_bar = menu_bar.addMenu('&Edit')
+        edit_bar.addAction(self.preferences_act)
         self.setMenuBar(menu_bar)
 
         data_bar = menu_bar.addMenu('&Data')
@@ -260,25 +264,3 @@ class TGExplorer(QMainWindow):
     def on_filter_rows(self):
         field, value = self.simple_filter_dlg.data()
         self.editor_view.filter_rows(field, value)
-
-def init_preferences():
-    if not settings.contains('data_dir'):
-        settings.setValue('data_dir', '')
-
-    if not settings.contains('dict_path'):
-        settings.setValue('dict_path', '')
-
-    if not settings.contains('mode'):
-        settings.setValue('mode', 'simple')
-
-    if not settings.contains('praat_path'):
-        settings.setValue('praat_path', '')
-
-def run_app():
-    init_preferences()
-
-    app = QApplication([])
-    app.setStyle('Fusion')
-    main_window = TGExplorer()
-    main_window.show()
-    app.exec()
