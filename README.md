@@ -1,7 +1,11 @@
-# textgrid_manager
+# TextGrid Explorer
 
-[![PyPI - Version](https://img.shields.io/pypi/v/textgrid-manager.svg)](https://pypi.org/project/textgrid-manager)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/textgrid-manager.svg)](https://pypi.org/project/textgrid-manager)
+A tool for editing text content stored TextGrid files (Praat) as if they were in a spreadsheet.
+
+This project is currently in active development
+
+<img width="802" height="525" alt="image" src="https://github.com/user-attachments/assets/026de785-8bca-48cc-bda9-23bc60dd2319" />
+
 
 -----
 
@@ -9,13 +13,12 @@
 
 - [Installation](#installation)
 - [License](#license)
+- [Tutorial](#tutorial)
 
 ## Installation
 
-```console
-pip install textgrid-manager
-```
-
 ## License
 
-`textgrid-manager` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+This project is licensed under the GNU GPL terms - see the the [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) file for details.
+
+## Tutorial
