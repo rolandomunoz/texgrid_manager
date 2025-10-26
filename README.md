@@ -1,6 +1,6 @@
 # TextGrid Explorer
 
-A tool for editing text content stored TextGrid files (Praat) as if they were in a spreadsheet.
+A tool for editing text content stored in multiple TextGrid files (Praat) as if they were in a spreadsheet.
 
 This project is currently in active development
 
@@ -22,3 +22,4 @@ This project is currently in active development
 This project is licensed under the GNU GPL terms - see the the [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) file for details.
 
 ## Tutorial
+
