@@ -122,7 +122,7 @@ class TGExplorer(QMainWindow):
         self.project_settings_act.setShortcut('Ctrl+R')
         self.project_settings_act.triggered.connect(self.on_project_settings)
 
-        self.open_praat_act = QAction('&Open selected in Praat', self)
+        self.open_praat_act = QAction('&Open selection in Praat', self)
         self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
         self.open_praat_act.triggered.connect(self.editor_view.open_praat)
         self.open_praat_act.setShortcut('Alt+P')
