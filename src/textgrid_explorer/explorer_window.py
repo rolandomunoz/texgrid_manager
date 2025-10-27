@@ -220,7 +220,7 @@ class TGExplorer(QMainWindow):
         praat_maximize_audibility = settings.value('praat/maximize_audibility')
 
         self.preferences_dlg.set_data(praat_path, int(praat_maximize_audibility))
-        self.preferences_dlg.show()
+        self.preferences_dlg.open()
 
     def open_filter_dlg(self):
         proxy_model = self.editor_view.table_view.model()
