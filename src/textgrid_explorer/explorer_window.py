@@ -13,12 +13,14 @@
 #
 #   You should have received a copy of the GNU General Public License along
 #   with this program.  If not, see <https://www.gnu.org/licenses/>.
+import shutil
 import subprocess
 from importlib import resources
 
 from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
+    QMessageBox,
     QTableView,
     QMenuBar,
     QToolBar,
@@ -75,7 +77,15 @@ class EditorView(QWidget):
         sound_path = textgrid_path.with_suffix('.wav')
         interval = index.data(Qt.ItemDataRole.UserRole)[1]
 
-        praat_path = settings.value('praat/path')
+        praat_path_ = settings.value('praat/path')
+        praat_path = shutil.which(praat_path_)
+        if praat_path is None:
+            QMessageBox.critical(
+                self,
+                'Open selection in Praat',
+                'It seems like the <b>Praat path</b> does not exist. Please, go to <b>Edit > Preferences</br'
+            )
+
         praat_maximize_audibility = settings.value('praat/maximize_audibility')
         script_path = resources_dir / 'open_file.praat'
         subprocess.run(
