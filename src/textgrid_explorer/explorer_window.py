@@ -229,10 +229,10 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg = FilterByDialog(self)
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
-        self.search_and_replace_dlg = FindAndReplaceDialog()
+        self.search_and_replace_dlg = FindAndReplaceDialog(self)
         self.search_and_replace_dlg.accepted.connect(self.on_search_and_replace)
 
-        self.map_annotations_dlg = MapAnnotationDialog()
+        self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
 
     def open_preferences_dlg(self):

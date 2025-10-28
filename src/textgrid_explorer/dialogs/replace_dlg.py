@@ -21,16 +21,17 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QComboBox,
     QPushButton,
+    QWidget,
+    QTabWidget,
     QVBoxLayout,
     QHBoxLayout,
     QFormLayout
 )
 
-class FindAndReplaceDialog(QDialog):
+class ReplaceTab(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle('Find and replace')
         self._fields = []
         self.init_ui()
 
@@ -38,31 +39,16 @@ class FindAndReplaceDialog(QDialog):
         self.fields_box = QComboBox(self)
         self.fields_box.addItems(self._fields)
 
-        self.search_ed = QLineEdit(self)
+        self.find_ed = QLineEdit(self)
+
         self.replace_ed = QLineEdit(self)
 
-        ok_btn = QPushButton('Ok', self)
-        ok_btn.clicked.connect(self.accept)
+        form = QFormLayout()
+        form.addRow('C&olumn name', self.fields_box)
+        form.addRow('Fi&nd what', self.find_ed)
+        form.addRow('Re&place with', self.replace_ed)
 
-        cancel_btn = QPushButton('Cancel', self)
-        cancel_btn.clicked.connect(self.reject)
-
-        btn_box = QHBoxLayout()
-        btn_box.addWidget(ok_btn)
-        btn_box.addWidget(cancel_btn)
-
-        main_box = QVBoxLayout()
-        main_box.addWidget(QLabel('Column name:'))
-        main_box.addWidget(self.fields_box)
-
-        main_box.addWidget(QLabel('Find what:'))
-        main_box.addWidget(self.search_ed)
-
-        main_box.addWidget(QLabel('Replace with:'))
-        main_box.addWidget(self.replace_ed)
-        main_box.addLayout(btn_box)
-
-        self.setLayout(main_box)
+        self.setLayout(form)
 
     def set_fields(self, fields):
         if not self._fields == fields:
@@ -77,10 +63,64 @@ class FindAndReplaceDialog(QDialog):
         r = Result(
             self.fields_box.currentIndex(),
             self.fields_box.currentText(),
-            self.search_ed.text(),
+            self.find_ed.text(),
             self.replace_ed.text()
         )
         return r
+
+class FindTab(QWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.init_ui()
+
+    def init_ui(self):
+        self.fields_box = QComboBox(self)
+        self.find_ed = QLineEdit(self)
+
+        form = QFormLayout()
+        form.addRow('C&olumn name', self.fields_box)
+        form.addRow('Fi&nd what', self.find_ed)
+        self.setLayout(form)
+
+class FindAndReplaceDialog(QDialog):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Find and replace')
+        self._fields = []
+        self.init_ui()
+
+    def init_ui(self):
+        self.replace_tab = ReplaceTab(self)
+        self.find_tab = FindTab(self)
+
+        tabs = QTabWidget(self)
+        tabs.setTabPosition(QTabWidget.North)
+        tabs.addTab(self.find_tab, '&Find')
+        tabs.addTab(self.replace_tab, '&Replace')
+
+        ok_btn = QPushButton('&Ok', self)
+        ok_btn.clicked.connect(self.accept)
+
+        cancel_btn = QPushButton('&Cancel', self)
+        cancel_btn.clicked.connect(self.reject)
+
+        hbox = QHBoxLayout()
+        hbox.addWidget(ok_btn)
+        hbox.addWidget(cancel_btn)
+
+        layout = QVBoxLayout()
+        layout.addWidget(tabs)
+        layout.addLayout(hbox)
+
+        self.setLayout(layout)
+
+    def set_fields(self, fields):
+        self.replace_tab.set_fields(fields)
+
+    def data(self):
+        return self.replace_tab.data()
 
 class MapAnnotationDialog(QDialog):
 
