@@ -167,8 +167,9 @@ class TGExplorer(QMainWindow):
         self.open_praat_act.setShortcut('Alt+P')
 
         # Edit
-        self.search_and_replace_act = QAction('&Search and replace...', self)
-        self.search_and_replace_act.triggered.connect(self.open_search_and_replace_dlg)
+        self.find_and_replace_act = QAction('&Find and replace...', self)
+        self.find_and_replace_act.setShortcut('Ctrl+H')
+        self.find_and_replace_act.triggered.connect(self.open_find_and_replace_dlg)
 
         self.map_annotation_act = QAction('&Map annotation...', self)
         self.map_annotation_act.triggered.connect(self.open_map_annotation_dlg)
@@ -190,7 +191,7 @@ class TGExplorer(QMainWindow):
         file_bar.addAction(self.quit_act)
 
         edit_bar = menu_bar.addMenu('&Edit')
-        edit_bar.addAction(self.search_and_replace_act)
+        edit_bar.addAction(self.find_and_replace_act)
         edit_bar.addAction(self.map_annotation_act)
         edit_bar.addSeparator()
         edit_bar.addAction(self.preferences_act)
@@ -250,7 +251,7 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg.set_fields(fields)
         self.simple_filter_dlg.show()
 
-    def open_search_and_replace_dlg(self):
+    def open_find_and_replace_dlg(self):
         proxy_model = self.editor_view.table_view.model()
         ncols = proxy_model.columnCount()
         orientation = Qt.Orientation.Horizontal
@@ -295,7 +296,7 @@ class TGExplorer(QMainWindow):
         self.open_project_act.setEnabled(b)
         self.open_praat_act.setEnabled(b)
         self.filter_act.setEnabled(b)
-        self.search_and_replace_act.setEnabled(b)
+        self.find_and_replace_act.setEnabled(b)
         self.map_annotation_act.setEnabled(b)
         self.sort_az_act.setEnabled(b)
         self.sort_za_act.setEnabled(b)
