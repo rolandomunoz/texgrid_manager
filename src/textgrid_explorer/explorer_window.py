@@ -40,7 +40,7 @@ from PySide6.QtGui import (
 from textgrid_explorer.models import TGTableModel
 from textgrid_explorer.dialogs import NewProjectDialog
 from textgrid_explorer.dialogs import FilterByDialog
-from textgrid_explorer.dialogs import SearchAndReplaceDialog
+from textgrid_explorer.dialogs import FindAndReplaceDialog
 from textgrid_explorer.dialogs import MapAnnotationDialog
 from textgrid_explorer.dialogs import PreferencesDialog
 from textgrid_explorer import utils
@@ -229,7 +229,7 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg = FilterByDialog(self)
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
-        self.search_and_replace_dlg = SearchAndReplaceDialog()
+        self.search_and_replace_dlg = FindAndReplaceDialog()
         self.search_and_replace_dlg.accepted.connect(self.on_search_and_replace)
 
         self.map_annotations_dlg = MapAnnotationDialog()
