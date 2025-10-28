@@ -106,7 +106,8 @@ class EditorView(QWidget):
         headers : list of str
             Column names.
         data : list of list
-            Each child list corresponds to the column values.
+            The inner list have n-dimensions and the first element is a `pathlib.Path`
+            and the rest of the elements are `mytextgrid.core.interval_tier.Interval` or None.
         """
         model = self.table_view.model().sourceModel()
         model.set_full_dataset(headers, data)
