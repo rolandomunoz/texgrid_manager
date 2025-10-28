@@ -4,7 +4,7 @@ A tool for editing text content stored in multiple TextGrid files (Praat) as if 
 
 This project is currently in active development
 
-<img width="802" height="525" alt="image" src="https://github.com/user-attachments/assets/026de785-8bca-48cc-bda9-23bc60dd2319" />
+<img width="802" height="525" alt="image" src="https://github.com/user-attachments/assets/4015c88c-399c-4e0c-9a10-abf2cb6777d2" />
 <img width="802" height="532" alt="image" src="https://github.com/user-attachments/assets/c7fcd835-0ace-4bcc-bfd9-446c40d63689" />
 
 
@@ -23,5 +23,6 @@ This project is currently in active development
 This project is licensed under the GNU GPL terms - see the the [LICENSE](https://www.gnu.org/licenses/gpl-3.0.txt) file for details.
 
 ## Tutorial
+
 
 
