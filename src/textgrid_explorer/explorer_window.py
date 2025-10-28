@@ -97,16 +97,17 @@ class EditorView(QWidget):
         proxy_model.setFilterKeyColumn(key_column)
         proxy_model.setFilterRegularExpression(str_expression)
 
-    def load_textgrids_from_dir(self, src_dir, primary_tier=None, secondary_tiers=None):
-        if primary_tier is None:
-            primary_tier = []
+    def set_table_data(self, headers, data):
+        """
+        Set the table data.
 
-        if secondary_tiers is None:
-            secondary_tiers = []
-
-        headers, data = utils.create_aligned_tier_table(
-            src_dir, primary_tier, secondary_tiers
-        )
+        Parameters
+        ----------
+        headers : list of str
+            Column names.
+        data : list of list
+            Each child list corresponds to the column values.
+        """
         model = self.table_view.model().sourceModel()
         model.set_full_dataset(headers, data)
 
@@ -204,7 +205,7 @@ class TGExplorer(QMainWindow):
         self.preferences_dlg.accepted.connect(self.on_preferences)
 
         self.new_project_dlg = NewProjectDialog(self)
-        self.new_project_dlg.accepted.connect(self.on_load_project)
+        self.new_project_dlg.accepted.connect(self.on_load_data)
 
         self.simple_filter_dlg = FilterByDialog(self)
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
@@ -289,13 +290,29 @@ class TGExplorer(QMainWindow):
         self.editor_view.load_textgrids_from_dir('')
         self.on_enabled_buttons(False)
 
-    def on_load_project(self):
+    def on_load_data(self):
+        # Get variables from a dialog
         dict_ = self.new_project_dlg.data()
-        self.editor_view.load_textgrids_from_dir(
-            dict_['src_dir'],
-            dict_['primary_tier'],
-            dict_['secondary_tiers'],
+
+        src_dir = dict_['src_dir']
+
+        primary_tier = dict_['primary_tier']
+        if primary_tier is None:
+            primary_tier = []
+
+        secondary_tiers = dict_['secondary_tiers']
+        if secondary_tiers is None:
+            secondary_tiers = []
+
+        # Build table headers and data
+        headers, data = utils.create_aligned_tier_table(
+            src_dir, primary_tier, secondary_tiers
         )
+
+        # Fill up table
+        self.editor_view.set_table_data(headers, data)
+
+        # Enable buttons
         self.on_enabled_buttons(True)
 
     def on_filter_rows(self):
