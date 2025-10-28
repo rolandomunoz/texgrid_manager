@@ -153,8 +153,9 @@ class TGExplorer(QMainWindow):
         self.open_praat_act.triggered.connect(self.editor_view.open_praat)
         self.open_praat_act.setShortcut('Alt+P')
 
-        #self.quit_act = QAction('&Salir', self)
-        #self.quit_act.triggered.connect(self.close)
+        self.quit_act = QAction('&Quit', self)
+        self.quit_act.setShortcut('Ctrl+Q')
+        self.quit_act.triggered.connect(self.close)
 
         self.filter_act = QAction('&Filter by...', self)
         self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
@@ -176,6 +177,8 @@ class TGExplorer(QMainWindow):
         file_bar.addAction(self.close_project_act)
         file_bar.addSeparator()
         file_bar.addAction(self.project_settings_act)
+        file_bar.addSeparator()
+        file_bar.addAction(self.quit_act)
 
         edit_bar = menu_bar.addMenu('&Edit')
         edit_bar.addAction(self.search_and_replace_act)
