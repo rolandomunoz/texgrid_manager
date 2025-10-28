@@ -17,7 +17,6 @@ import json
 import re
 from pathlib import Path
 from importlib import resources
-from pprint import pprint
 
 from PySide6.QtCore import (
     QAbstractTableModel,
@@ -28,7 +27,8 @@ from PySide6.QtCore import (
 from PySide6.QtGui import (
     QPixmap,
     QIcon,
-    QColor
+    QColor,
+    QBrush
 )
 from textgrid_explorer import utils
 
@@ -67,38 +67,48 @@ class TGTableModel(QAbstractTableModel):
         row, column = index.row(), index.column()
         item = self._data[row][column]
 
-        if item is None:
-            return ''
-
+        # [`pathlib.Path`, `mytextgrid.Interval`, None, ...]
         if role == Qt.ItemDataRole.DisplayRole:
+            if column == 0: # first column is `pathlib.Path` object
+                return item.name 
+
+            if item is None: # Item is None
+                return ''
+            return item.text # `Interval` object
+
+        elif role == Qt.ItemDataRole.BackgroundRole:
+            if item is None:
+                return QBrush(QColor('lightGray'))
+            return QBrush(QColor('white'))
+
+        elif role == Qt.ItemDataRole.EditRole:
             if column == 0:
-                return item.name
-            else:
-                return item.text
+                return ''
+            if item is None:
+                return ''
+            return item.text
 
-        if role == Qt.ItemDataRole.EditRole:
-            if column > 0:
-                return item.text
-
-        if role == Qt.ItemDataRole.UserRole:
+        elif role == Qt.ItemDataRole.UserRole:
             return self._data[row]
 
-        return
+        return None
 
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
         if role != Qt.ItemDataRole.EditRole:
-            return
+            return False
+
+        if index.column() == 0: # pathlib.Path
+            return False
 
         column, row = index.column(), index.row()
+        item = self._data[row][column]
 
-        if column > 0: # Text
-            item = self._data[row][column]
-            if item is None:
-                return False
-            item.text = value
-            item.parent.parent.write(item.parent.parent._path)
-            return True
-        return False
+        if item is None:
+            return False
+
+        item.text = value
+        item.parent.parent.write(item.parent.parent._path) #Change in the future
+        return True
 
     def append_data(self, dict_):
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
@@ -107,11 +117,20 @@ class TGTableModel(QAbstractTableModel):
         self.save(row)
         self.endInsertRows()
 
-    def flags(self, index=QModelIndex()):
-        myflags = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled 
-        if index.column() > 0:
-            return myflags|Qt.ItemFlag.ItemIsEditable
-        return myflags
+    def flags(self, index=None):
+        if index is None:
+            index = QModelIndex()
+
+        my_flags = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled
+
+        if index.column() == 0:
+            return my_flags
+
+        column, row = index.column(), index.row()
+        item = self._data[row][column]
+        if item is None:
+            return my_flags
+        return my_flags|Qt.ItemFlag.ItemIsEditable
 
     def search_and_replace(self, pattern, repl, src_column, dst_column):
         '''
