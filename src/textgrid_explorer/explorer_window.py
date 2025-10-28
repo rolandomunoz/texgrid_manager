@@ -57,7 +57,6 @@ class EditorView(QWidget):
 
     def init_ui(self):
         self.table_view = QTableView()
-        self.table_view.setSortingEnabled(True)
 
         model = TGTableModel([])
         proxy_model = QSortFilterProxyModel(model)
@@ -130,10 +129,7 @@ class TGExplorer(QMainWindow):
         """
         Create actions
         """
-        self.preferences_act = QAction('&Preferences...', self)
-        self.preferences_act.triggered.connect(self.open_preferences_dlg)
-        #self.preferences_act.setIcon(QIcon(str(icon_dir/'preferences-desktop.png')))
-
+        # File
         self.new_project_act = QAction('&New project...', self)
         self.new_project_act.setShortcut('Ctrl+N')
         self.new_project_act.triggered.connect(self.new_project_dlg.open)
@@ -149,25 +145,37 @@ class TGExplorer(QMainWindow):
         self.project_settings_act.setShortcut('Ctrl+R')
         self.project_settings_act.triggered.connect(self.on_project_settings)
 
-        self.open_praat_act = QAction('&Open selection in Praat', self)
-        self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
-        self.open_praat_act.triggered.connect(self.editor_view.open_praat)
-        self.open_praat_act.setShortcut('Alt+P')
-
         self.quit_act = QAction('&Quit', self)
         self.quit_act.setShortcut('Ctrl+Q')
         self.quit_act.triggered.connect(self.close)
+
+        # Data
+        self.sort_az_act = QAction('Sort table by column (A to Z)', self)
+        self.sort_az_act.triggered.connect(self.on_sort_az)
+
+        self.sort_za_act = QAction('Sort table by column (Z to A)', self)
+        self.sort_za_act.triggered.connect(self.on_sort_za)
 
         self.filter_act = QAction('&Filter by...', self)
         self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
         self.filter_act.triggered.connect(self.open_filter_dlg)
         self.filter_act.setShortcut('Ctrl+F')
 
+        self.open_praat_act = QAction('&Open selection in Praat', self)
+        self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
+        self.open_praat_act.triggered.connect(self.editor_view.open_praat)
+        self.open_praat_act.setShortcut('Alt+P')
+
+        # Edit
         self.search_and_replace_act = QAction('&Search and replace...', self)
         self.search_and_replace_act.triggered.connect(self.open_search_and_replace_dlg)
 
         self.map_annotation_act = QAction('&Map annotation...', self)
         self.map_annotation_act.triggered.connect(self.open_map_annotation_dlg)
+
+        self.preferences_act = QAction('&Preferences...', self)
+        self.preferences_act.triggered.connect(self.open_preferences_dlg)
+        #self.preferences_act.setIcon(QIcon(str(icon_dir/'preferences-desktop.png')))
 
     def init_menubar(self):
         menu_bar = QMenuBar()
@@ -188,7 +196,11 @@ class TGExplorer(QMainWindow):
         edit_bar.addAction(self.preferences_act)
 
         data_bar = menu_bar.addMenu('&Data')
+        data_bar.addAction(self.sort_az_act)
+        data_bar.addAction(self.sort_za_act)
+        data_bar.addSeparator()
         data_bar.addAction(self.filter_act)
+        data_bar.addSeparator()
         data_bar.addAction(self.open_praat_act)
 
         self.setMenuBar(menu_bar)
@@ -202,6 +214,8 @@ class TGExplorer(QMainWindow):
 
     def init_ui(self):
         self.editor_view = EditorView(self)
+        selection_model = self.editor_view.table_view.selectionModel()
+        selection_model.currentColumnChanged.connect(self.on_test)
         self.setCentralWidget(self.editor_view)
 
     def init_dialogs(self):
@@ -283,6 +297,8 @@ class TGExplorer(QMainWindow):
         self.filter_act.setEnabled(b)
         self.search_and_replace_act.setEnabled(b)
         self.map_annotation_act.setEnabled(b)
+        self.sort_az_act.setEnabled(b)
+        self.sort_za_act.setEnabled(b)
 
     def on_open_project(self):
         pass
@@ -322,6 +338,28 @@ class TGExplorer(QMainWindow):
     def on_filter_rows(self):
         field, value = self.simple_filter_dlg.data()
         self.editor_view.filter_rows(field, value)
+
+    def on_sort_az(self):
+        table_view = self.editor_view.table_view
+        indexes = table_view.selectedIndexes()
+        if indexes:
+            topleft_index = indexes[0]
+            column_index = topleft_index.column()
+            table_view.sortByColumn(column_index, Qt.SortOrder.AscendingOrder)
+
+    def on_sort_za(self):
+        table_view = self.editor_view.table_view
+        indexes = table_view.selectedIndexes()
+        if indexes:
+            topleft_index = indexes[0]
+            column_index = topleft_index.column()
+            table_view.sortByColumn(column_index, Qt.SortOrder.DescendingOrder)
+
+    def on_test(self, current_index, previous_index):
+        column_index = current_index.column()
+        column_name = current_index.model().headerData(column_index, Qt.Orientation.Horizontal)
+        self.sort_az_act.setText(f'Sort by column "{column_name}" (A to Z)')
+        self.sort_za_act.setText(f'Sort by column "{column_name}" (Z to A)')
 
     def on_preferences(self):
         preferences = self.preferences_dlg.data()
