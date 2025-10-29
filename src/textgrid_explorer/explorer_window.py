@@ -168,7 +168,11 @@ class TGExplorer(QMainWindow):
         # Edit
         self.find_and_replace_act = QAction('&Find and replace...', self)
         self.find_and_replace_act.setShortcut('Ctrl+H')
-        self.find_and_replace_act.triggered.connect(self.open_find_and_replace_dlg)
+        self.find_and_replace_act.triggered.connect(self.open_replace_dlg)
+
+        self.find_act = QAction('&Find...', self)
+        self.find_act.setShortcut('Ctrl+F')
+        self.find_act.triggered.connect(self.open_find_dlg)
 
         self.map_annotation_act = QAction('&Map annotation...', self)
         self.map_annotation_act.triggered.connect(self.open_map_annotation_dlg)
@@ -191,6 +195,7 @@ class TGExplorer(QMainWindow):
 
         edit_bar = menu_bar.addMenu('&Edit')
         edit_bar.addAction(self.find_and_replace_act)
+        edit_bar.addAction(self.find_act)
         edit_bar.addAction(self.map_annotation_act)
         edit_bar.addSeparator()
         edit_bar.addAction(self.preferences_act)
@@ -250,13 +255,39 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg.set_fields(fields)
         self.simple_filter_dlg.show()
 
-    def open_find_and_replace_dlg(self):
-        proxy_model = self.editor_view.table_view.model()
-        ncols = proxy_model.columnCount()
-        orientation = Qt.Orientation.Horizontal
-        fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
+    def open_replace_dlg(self):
+        self.open_find_and_replace_dlg(1)
+    
+    def open_find_dlg(self):
+        self.open_find_and_replace_dlg(0)
 
-        self.find_and_replace_dlg.set_fields(fields)
+    def open_find_and_replace_dlg(self, tab_index=0):
+        column_index = -1
+        column_names = []
+        find_pattern = ''
+
+        # Get column names
+        model = self.editor_view.table_view.model()
+        for i in range(model.columnCount()):
+            column_names.append(
+                model.headerData(i, Qt.Orientation.Horizontal)
+            )
+
+        # On selection
+        indexes = self.editor_view.table_view.selectedIndexes()
+        if indexes:
+            index = indexes[0] #topleft selection
+            column_index = index.column()
+
+            if len(indexes) == 1: # If selected on cell
+                find_pattern = index.data()
+
+        ## Fill up find tab        
+        self.find_and_replace_dlg.set_column_field(column_names, column_index)
+        self.find_and_replace_dlg.set_find_field(find_pattern)
+
+        ## Fill up replace tab
+        self.find_and_replace_dlg.set_current_tab(tab_index)
         self.find_and_replace_dlg.show()
 
     def open_map_annotation_dlg(self):

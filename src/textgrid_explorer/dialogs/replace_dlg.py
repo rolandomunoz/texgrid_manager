@@ -32,37 +32,51 @@ class ReplaceTab(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._fields = []
+        self._columns = []
         self.init_ui()
 
     def init_ui(self):
-        self.fields_box = QComboBox(self)
-        self.fields_box.addItems(self._fields)
-
+        self.column_box = QComboBox(self)
         self.find_ed = QLineEdit(self)
-
         self.replace_ed = QLineEdit(self)
 
         form = QFormLayout()
-        form.addRow('C&olumn name', self.fields_box)
         form.addRow('Fi&nd what', self.find_ed)
         form.addRow('Re&place with', self.replace_ed)
+        form.addRow('In c&olumn', self.column_box)
 
         self.setLayout(form)
 
-    def set_fields(self, fields):
-        if not self._fields == fields:
-            self._fields = fields
-            self.fields_box.clear()
-            self.fields_box.addItems(fields)
+    def set_find_field(self, value):
+        self.find_ed.setText(value)
+
+    def set_replace_field(self, value):
+        self.replace_ed.setText(value)
+
+    def set_column_field(self, column_names, index=-1):
+        if not self._columns == column_names:
+            self._columns = column_names
+            self.column_box.clear()
+            self.column_box.addItems(column_names)
+        self.column_box.setCurrentIndex(index)
+
+    def find_field(self):
+        return self.find_ed.text()
+
+    def replace_field(self):
+        return self.replace_ed.text()
+
+    def current_column_field(self):
+        return self.column_box.currentText()
 
     def data(self):
+        # Deprecated
         Result = namedtuple(
             'Results', ['field_index', 'field', 'find', 'replace']
         )
         r = Result(
-            self.fields_box.currentIndex(),
-            self.fields_box.currentText(),
+            self.column_box.currentIndex(),
+            self.column_box.currentText(),
             self.find_ed.text(),
             self.replace_ed.text()
         )
@@ -73,15 +87,33 @@ class FindTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.init_ui()
+        self._columns = []
 
     def init_ui(self):
-        self.fields_box = QComboBox(self)
+        self.column_box = QComboBox(self)
         self.find_ed = QLineEdit(self)
 
         form = QFormLayout()
-        form.addRow('C&olumn name', self.fields_box)
         form.addRow('Fi&nd what', self.find_ed)
+        form.addRow('In c&olumn', self.column_box)
+
         self.setLayout(form)
+
+    def set_find_field(self, value):
+        self.find_ed.setText(value)
+
+    def set_column_field(self, column_names, index=-1):
+        if not self._columns == column_names:
+            self._columns = column_names
+            self.column_box.clear()
+            self.column_box.addItems(column_names)
+        self.column_box.setCurrentIndex(index)
+
+    def find_field(self):
+        return self.find_ed.text()
+
+    def current_column_field(self):
+        return self.column_box.currentText()
 
 class FindAndReplaceDialog(QDialog):
 
@@ -96,10 +128,10 @@ class FindAndReplaceDialog(QDialog):
         self.replace_tab = ReplaceTab(self)
         self.find_tab = FindTab(self)
 
-        tabs = QTabWidget(self)
-        tabs.setTabPosition(QTabWidget.North)
-        tabs.addTab(self.find_tab, '&Find')
-        tabs.addTab(self.replace_tab, '&Replace')
+        self.tabs = QTabWidget(self)
+        self.tabs.setTabPosition(QTabWidget.North)
+        self.tabs.addTab(self.find_tab, '&Find')
+        self.tabs.addTab(self.replace_tab, '&Replace')
 
         ok_btn = QPushButton('&Ok', self)
         ok_btn.clicked.connect(self.accept)
@@ -112,13 +144,24 @@ class FindAndReplaceDialog(QDialog):
         hbox.addWidget(cancel_btn)
 
         layout = QVBoxLayout()
-        layout.addWidget(tabs)
+        layout.addWidget(self.tabs)
         layout.addLayout(hbox)
 
         self.setLayout(layout)
 
+    def set_find_field(self, value):
+        self.find_tab.set_find_field(value)
+        self.replace_tab.set_find_field(value)
+
+    def set_column_field(self, column_names, index=-1):
+        self.find_tab.set_column_field(column_names, index)
+        self.replace_tab.set_column_field(column_names, index)
+
     def set_fields(self, fields):
         self.replace_tab.set_fields(fields)
+
+    def set_current_tab(self, index):
+        self.tabs.setCurrentIndex(index)
 
     def data(self):
         return self.replace_tab.data()
