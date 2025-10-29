@@ -215,7 +215,7 @@ class TGExplorer(QMainWindow):
     def init_ui(self):
         self.editor_view = EditorView(self)
         selection_model = self.editor_view.table_view.selectionModel()
-        selection_model.currentColumnChanged.connect(self.on_test)
+        selection_model.currentColumnChanged.connect(self.on_sorting_act)
         self.setCentralWidget(self.editor_view)
 
     def init_dialogs(self):
@@ -355,7 +355,11 @@ class TGExplorer(QMainWindow):
             column_index = topleft_index.column()
             table_view.sortByColumn(column_index, Qt.SortOrder.DescendingOrder)
 
-    def on_test(self, current_index, previous_index):
+    def on_sorting_act(self, current_index, previous_index):
+        """
+        Update the name of the `Sort by column (A to Z)` command with the
+        selected column name.
+        """
         column_index = current_index.column()
         column_name = current_index.model().headerData(column_index, Qt.Orientation.Horizontal)
         self.sort_az_act.setText(f'Sort by column "{column_name}" (A to Z)')
