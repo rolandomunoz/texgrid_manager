@@ -58,7 +58,7 @@ class ReplaceTab(QWidget):
 
     def data(self):
         Result = namedtuple(
-            'Results', ['field_index', 'field', 'search', 'replace']
+            'Results', ['field_index', 'field', 'find', 'replace']
         )
         r = Result(
             self.fields_box.currentIndex(),
@@ -139,7 +139,7 @@ class MapAnnotationDialog(QDialog):
         self.dst_tier_box = QComboBox(self)
         #self.dst_tier_box.addItems(self._fields)
 
-        self.search_ed = QLineEdit(self)
+        self.find_ed = QLineEdit(self)
         self.replace_ed = QLineEdit(self)
 
         ok_btn = QPushButton('Ok', self)
@@ -155,7 +155,7 @@ class MapAnnotationDialog(QDialog):
         form = QFormLayout()
         form.addRow('From:', self.src_tier_box)
         form.addRow('To:', self.dst_tier_box)
-        form.addRow('Find what:', self.search_ed)
+        form.addRow('Find what:', self.find_ed)
         form.addRow('Replace with:', self.replace_ed)
 
         main_box = QVBoxLayout()
@@ -178,7 +178,7 @@ class MapAnnotationDialog(QDialog):
 
     def data(self):
         Results = namedtuple(
-            'Results', ['src_column', 'src_column_index', 'dst_column', 'dst_column_index', 'search', 'replace']
+            'Results', ['src_column', 'src_column_index', 'dst_column', 'dst_column_index', 'find', 'replace']
         )
         src_column = self.src_tier_box.currentText()
         dst_column = self.dst_tier_box.currentText()
@@ -188,7 +188,7 @@ class MapAnnotationDialog(QDialog):
             self._fields.index(src_column),
             dst_column,
             self._fields.index(dst_column),
-            self.search_ed.text(),
+            self.find_ed.text(),
             self.replace_ed.text(),
         )
         return r

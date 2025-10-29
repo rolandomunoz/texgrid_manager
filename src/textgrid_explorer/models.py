@@ -132,7 +132,7 @@ class TGTableModel(QAbstractTableModel):
             return my_flags
         return my_flags|Qt.ItemFlag.ItemIsEditable
 
-    def search_and_replace(self, pattern, repl, src_column, dst_column):
+    def find_and_replace(self, pattern, repl, src_column, dst_column):
         '''
         Searches for a regex pattern in one column and replaces the matching
         substrings in another column with a specified replacement string.

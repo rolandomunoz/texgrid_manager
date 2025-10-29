@@ -228,8 +228,8 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg = FilterByDialog(self)
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
-        self.search_and_replace_dlg = FindAndReplaceDialog(self)
-        self.search_and_replace_dlg.accepted.connect(self.on_search_and_replace)
+        self.find_and_replace_dlg = FindAndReplaceDialog(self)
+        self.find_and_replace_dlg.accepted.connect(self.on_find_and_replace)
 
         self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
@@ -256,8 +256,8 @@ class TGExplorer(QMainWindow):
         orientation = Qt.Orientation.Horizontal
         fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
 
-        self.search_and_replace_dlg.set_fields(fields)
-        self.search_and_replace_dlg.show()
+        self.find_and_replace_dlg.set_fields(fields)
+        self.find_and_replace_dlg.show()
 
     def open_map_annotation_dlg(self):
         """
@@ -271,13 +271,13 @@ class TGExplorer(QMainWindow):
         self.map_annotations_dlg.set_fields(fields)
         self.map_annotations_dlg.show()
 
-    def on_search_and_replace(self):
-        r = self.search_and_replace_dlg.data()
+    def on_find_and_replace(self):
+        r = self.find_and_replace_dlg.data()
 
         proxy_model = self.editor_view.table_view.model()
         model = proxy_model.sourceModel()
-        model.search_and_replace(
-            r.search, r.replace, r.field_index, r.field_index, 
+        model.find_and_replace(
+            r.find, r.replace, r.field_index, r.field_index, 
         )
 
     def on_map_annotations(self):
@@ -285,8 +285,8 @@ class TGExplorer(QMainWindow):
 
         proxy_model = self.editor_view.table_view.model()
         model = proxy_model.sourceModel()
-        model.search_and_replace(
-            r.search, r.replace, r.src_column_index, r.dst_column_index, 
+        model.find_and_replace(
+            r.find, r.replace, r.src_column_index, r.dst_column_index, 
         )
 
     def on_enabled_buttons(self, b):
