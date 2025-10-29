@@ -13,6 +13,7 @@
 #
 #   You should have received a copy of the GNU General Public License along
 #   with this program.  If not, see <https://www.gnu.org/licenses/>.
+import sys
 import platform
 
 from PySide6.QtWidgets import QApplication
@@ -44,7 +45,8 @@ def init_preferences():
 
 def main():
     init_preferences()   
-    app = QApplication([])
+    app = QApplication(sys.argv)
+    # cli_arguments = app.arguments()
     app.setStyle('Fusion')
     main_window = TGExplorer()
     main_window.show()
