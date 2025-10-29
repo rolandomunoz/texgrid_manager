@@ -88,6 +88,7 @@ class FindAndReplaceDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle('Find and replace')
+        self.setMinimumWidth(500)
         self._fields = []
         self.init_ui()
 

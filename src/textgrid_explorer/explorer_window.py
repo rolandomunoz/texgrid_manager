@@ -159,7 +159,6 @@ class TGExplorer(QMainWindow):
         self.filter_act = QAction('&Filter by...', self)
         self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
         self.filter_act.triggered.connect(self.open_filter_dlg)
-        self.filter_act.setShortcut('Ctrl+F')
 
         self.open_praat_act = QAction('&Open selection in Praat', self)
         self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
