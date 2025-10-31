@@ -48,7 +48,7 @@ from textgrid_explorer import utils
 resources_dir = resources.files('textgrid_explorer.resources')
 icon_dir = resources_dir / 'icons'
 settings = QSettings('Gilgamesh', 'TGExplorer')
-  
+
 class EditorView(QWidget):
 
     def __init__(self, parent):
@@ -234,7 +234,8 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
         self.find_and_replace_dlg = FindAndReplaceDialog(self)
-        self.find_and_replace_dlg.accepted.connect(self.on_find_and_replace)
+        #self.find_and_replace_dlg.accepted.connect(self.on_find_and_replace)
+        self.find_and_replace_dlg.finished.connect(self.on_find)
 
         self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
@@ -257,7 +258,7 @@ class TGExplorer(QMainWindow):
 
     def open_replace_dlg(self):
         self.open_find_and_replace_dlg(1)
-    
+
     def open_find_dlg(self):
         self.open_find_and_replace_dlg(0)
 
@@ -282,7 +283,7 @@ class TGExplorer(QMainWindow):
             if len(indexes) == 1: # If selected on cell
                 find_pattern = index.data()
 
-        ## Fill up find tab        
+        ## Fill up find tab
         self.find_and_replace_dlg.set_column_field(column_names, column_index)
         self.find_and_replace_dlg.set_find_field(find_pattern)
 
@@ -302,13 +303,16 @@ class TGExplorer(QMainWindow):
         self.map_annotations_dlg.set_fields(fields)
         self.map_annotations_dlg.show()
 
+    def on_find(self, a):
+        print(a)
+
     def on_find_and_replace(self):
         r = self.find_and_replace_dlg.data()
 
         proxy_model = self.editor_view.table_view.model()
         model = proxy_model.sourceModel()
         model.find_and_replace(
-            r.find, r.replace, r.field_index, r.field_index, 
+            r.find, r.replace, r.field_index, r.field_index,
         )
 
     def on_map_annotations(self):
@@ -317,7 +321,7 @@ class TGExplorer(QMainWindow):
         proxy_model = self.editor_view.table_view.model()
         model = proxy_model.sourceModel()
         model.find_and_replace(
-            r.find, r.replace, r.src_column_index, r.dst_column_index, 
+            r.find, r.replace, r.src_column_index, r.dst_column_index,
         )
 
     def on_enabled_buttons(self, b):
@@ -326,7 +330,8 @@ class TGExplorer(QMainWindow):
         self.open_project_act.setEnabled(b)
         self.open_praat_act.setEnabled(b)
         self.filter_act.setEnabled(b)
-        self.find_and_replace_act.setEnabled(b)
+        #self.find_and_replace_act.setEnabled(b)
+        #self.find_act.setEnabled(b)
         self.map_annotation_act.setEnabled(b)
         self.sort_az_act.setEnabled(b)
         self.sort_za_act.setEnabled(b)
@@ -395,6 +400,7 @@ class TGExplorer(QMainWindow):
         column_name = current_index.model().headerData(column_index, Qt.Orientation.Horizontal)
         self.sort_az_act.setText(f'Sort by column "{column_name}" (A to Z)')
         self.sort_za_act.setText(f'Sort by column "{column_name}" (Z to A)')
+
 
     def on_preferences(self):
         preferences = self.preferences_dlg.data()

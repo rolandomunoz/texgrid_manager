@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QFormLayout
 )
+from PySide6.QtCore import Qt
 
 class ReplaceTab(QWidget):
 
@@ -131,23 +132,47 @@ class FindAndReplaceDialog(QDialog):
         self.tabs = QTabWidget(self)
         self.tabs.setTabPosition(QTabWidget.North)
         self.tabs.addTab(self.find_tab, '&Find')
-        self.tabs.addTab(self.replace_tab, '&Replace')
+        self.tabs.addTab(self.replace_tab, 'R&eplace')
+        self.tabs.currentChanged.connect(self.test_buttons)
 
-        ok_btn = QPushButton('&Ok', self)
-        ok_btn.clicked.connect(self.accept)
+        self.replace_all_btn = QPushButton('Replace &all')
+        self.replace_all_btn.clicked.connect(lambda: self.done(0))
 
-        cancel_btn = QPushButton('&Cancel', self)
-        cancel_btn.clicked.connect(self.reject)
+        self.replace_btn = QPushButton('&Replace')
+        self.replace_btn.clicked.connect(lambda: self.done(1))
+
+        self.find_all_btn = QPushButton('F&ind all')
+        self.find_all_btn.clicked.connect(lambda: self.done(2))
+
+        self.find_next_btn = QPushButton('Find &next')
+        self.find_next_btn.clicked.connect(lambda: self.done(3))
+
+        close_btn = QPushButton('&Close')
+        close_btn.clicked.connect(self.reject)
 
         hbox = QHBoxLayout()
-        hbox.addWidget(ok_btn)
-        hbox.addWidget(cancel_btn)
+        hbox.addStretch()
+        hbox.addWidget(self.replace_all_btn)
+        hbox.addWidget(self.replace_btn)
+        hbox.addSpacing(10)
+        hbox.addWidget(self.find_all_btn)
+        hbox.addWidget(self.find_next_btn)
+        hbox.addSpacing(10)
+        hbox.addWidget(close_btn)
 
         layout = QVBoxLayout()
         layout.addWidget(self.tabs)
         layout.addLayout(hbox)
 
         self.setLayout(layout)
+
+    def test_buttons(self, index):
+        if index == 0:
+            self.replace_btn.hide()
+            self.replace_all_btn.hide()
+        elif index == 1:
+            self.replace_btn.show()
+            self.replace_all_btn.show()
 
     def set_find_field(self, value):
         self.find_tab.set_find_field(value)
@@ -225,7 +250,7 @@ class MapAnnotationDialog(QDialog):
         )
         src_column = self.src_tier_box.currentText()
         dst_column = self.dst_tier_box.currentText()
-        
+
         r = Results(
             src_column,
             self._fields.index(src_column),
