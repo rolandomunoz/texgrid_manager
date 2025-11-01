@@ -70,7 +70,7 @@ class TGTableModel(QAbstractTableModel):
         # [`pathlib.Path`, `mytextgrid.Interval`, None, ...]
         if role == Qt.ItemDataRole.DisplayRole:
             if column == 0: # first column is `pathlib.Path` object
-                return item.name 
+                return item.name
 
             if item is None: # Item is None
                 return ''
@@ -108,6 +108,7 @@ class TGTableModel(QAbstractTableModel):
 
         item.text = value
         item.parent.parent.write(item.parent.parent._path) #Change in the future
+        self.dataChanged.emit(index, index, Qt.ItemDataRole.DisplayRole)
         return True
 
     def append_data(self, dict_):
@@ -132,7 +133,7 @@ class TGTableModel(QAbstractTableModel):
             return my_flags
         return my_flags|Qt.ItemFlag.ItemIsEditable
 
-    def find_and_replace(self, pattern, repl, src_column, dst_column):
+    def find_and_replace(self, pattern, repl, src_column, dst_column=-1):
         '''
         Searches for a regex pattern in one column and replaces the matching
         substrings in another column with a specified replacement string.
@@ -145,13 +146,17 @@ class TGTableModel(QAbstractTableModel):
             The replacement string. This is substituted for all non-overlapping
             occurrences of the pattern in the source string.
         src_column : int
-            The **zero-based index** of the column whose cell data is used to
+            The zero-based index of the column whose cell data is used to
             perform the search.
-        dst_column : int
-            The **zero-based index** of the column where the new, potentially
-            modified, string value will be written.
+        dst_column : int, default -1
+            The zero-based index of the column where the new, potentially
+            modified, string value will be written. If -1, the the value is
+            equal to src_column
         '''
         p = re.compile(pattern)
+
+        if dst_column == -1:
+            dst_column = src_column
 
         for irow in range(self.rowCount()):
             src_index = self.index(irow, src_column)
