@@ -72,20 +72,7 @@ class ReplaceTab(QWidget):
         return self.replace_ed.text()
 
     def current_column_field(self):
-        return self.column_box.currentText()
-
-    def data(self):
-        # Deprecated
-        Result = namedtuple(
-            'Results', ['field_index', 'field', 'find', 'replace']
-        )
-        r = Result(
-            self.column_box.currentIndex(),
-            self.column_box.currentText(),
-            self.find_ed.text(),
-            self.replace_ed.text()
-        )
-        return r
+        return self.column_box.currentIndex()
 
 class FindTab(QWidget):
 
@@ -118,7 +105,7 @@ class FindTab(QWidget):
         return self.find_ed.text()
 
     def current_column_field(self):
-        return self.column_box.currentText()
+        return self.column_box.currentIndex()
 
 class FindAndReplaceDialog(QDialog):
     my_clicked = Signal(int)
@@ -203,7 +190,23 @@ class FindAndReplaceDialog(QDialog):
         self.replace_tab.set_column_field(column_names, index)
 
     def data(self):
-        return self.replace_tab.data()
+        tab_index = self.tabs.currentIndex()
+
+        dict_ = {
+            'tab_index': tab_index,
+            'column_index': -1,
+            'find': '',
+            'replace': '',
+        }
+
+        if tab_index == 0:
+            dict_['column_index'] = self.find_tab.current_column_field()
+            dict_['find'] = self.find_tab.find_field()
+        elif tab_index == 1:
+            dict_['column_index'] = self.replace_tab.current_column_field()
+            dict_['find'] = self.replace_tab.find_field()
+            dict_['replace'] = self.replace_tab.replace_field()
+        return dict_
 
     def done(self, r):
         """
