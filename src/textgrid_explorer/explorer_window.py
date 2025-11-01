@@ -168,11 +168,11 @@ class TGExplorer(QMainWindow):
         # Edit
         self.find_and_replace_act = QAction('&Find and replace...', self)
         self.find_and_replace_act.setShortcut('Ctrl+H')
-        self.find_and_replace_act.triggered.connect(self.open_replace_dlg)
+        self.find_and_replace_act.triggered.connect(lambda: self.open_find_and_replace_dlg(1))
 
         self.find_act = QAction('&Find...', self)
         self.find_act.setShortcut('Ctrl+F')
-        self.find_act.triggered.connect(self.open_find_dlg)
+        self.find_act.triggered.connect(lambda: self.open_find_and_replace_dlg(0))
 
         self.map_annotation_act = QAction('&Map annotation...', self)
         self.map_annotation_act.triggered.connect(self.open_map_annotation_dlg)
@@ -234,8 +234,6 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
         self.find_and_replace_dlg = FindAndReplaceDialog(self)
-        #self.find_and_replace_dlg.accepted.connect(self.on_find_and_replace)
-        self.find_and_replace_dlg.finished.connect(self.on_find)
 
         self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
@@ -255,12 +253,6 @@ class TGExplorer(QMainWindow):
 
         self.simple_filter_dlg.set_fields(fields)
         self.simple_filter_dlg.show()
-
-    def open_replace_dlg(self):
-        self.open_find_and_replace_dlg(1)
-
-    def open_find_dlg(self):
-        self.open_find_and_replace_dlg(0)
 
     def open_find_and_replace_dlg(self, tab_index=0):
         column_index = -1
@@ -288,7 +280,7 @@ class TGExplorer(QMainWindow):
         self.find_and_replace_dlg.set_find_field(find_pattern)
 
         ## Fill up replace tab
-        self.find_and_replace_dlg.set_current_tab(tab_index)
+        self.find_and_replace_dlg.display_tab(tab_index)
         self.find_and_replace_dlg.show()
 
     def open_map_annotation_dlg(self):
@@ -303,8 +295,8 @@ class TGExplorer(QMainWindow):
         self.map_annotations_dlg.set_fields(fields)
         self.map_annotations_dlg.show()
 
-    def on_find(self, a):
-        print(a)
+    def on_find(self, clicked_button):
+        print(clicked_button)
 
     def on_find_and_replace(self):
         r = self.find_and_replace_dlg.data()
