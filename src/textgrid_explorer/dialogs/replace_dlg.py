@@ -192,9 +192,6 @@ class FindAndReplaceDialog(QDialog):
         self.find_tab.set_column_field(column_names, index)
         self.replace_tab.set_column_field(column_names, index)
 
-    def set_fields(self, fields):
-        self.replace_tab.set_fields(fields)
-
     def data(self):
         return self.replace_tab.data()
 
