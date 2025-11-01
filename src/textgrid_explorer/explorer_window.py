@@ -234,6 +234,7 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
         self.find_and_replace_dlg = FindAndReplaceDialog(self)
+        self.find_and_replace_dlg.my_clicked.connect(self.on_find_and_replace)
 
         self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
@@ -295,17 +296,31 @@ class TGExplorer(QMainWindow):
         self.map_annotations_dlg.set_fields(fields)
         self.map_annotations_dlg.show()
 
-    def on_find(self, clicked_button):
-        print(clicked_button)
+    def on_find_and_replace(self, button_index):
+        if button_index == 0: # Rejected button
+            return
 
-    def on_find_and_replace(self):
-        r = self.find_and_replace_dlg.data()
+        if button_index == 1: # Accept button
+            return
 
-        proxy_model = self.editor_view.table_view.model()
-        model = proxy_model.sourceModel()
-        model.find_and_replace(
-            r.find, r.replace, r.field_index, r.field_index,
-        )
+        dict_ = self.find_and_replace_dlg.data()
+
+        if button_index == 2: # Replace all
+            proxy_model = self.editor_view.table_view.model()
+            model = proxy_model.sourceModel()
+
+            model.find_and_replace(
+                dict_['find'], dict_['replace'], dict_['column_index']
+            )
+
+        if button_index == 3: # Replace
+            pass
+
+        if button_index == 4: # Find all
+            pass
+
+        if button_index == 5: # Find
+            pass
 
     def on_map_annotations(self):
         r = self.map_annotations_dlg.data()
@@ -322,8 +337,8 @@ class TGExplorer(QMainWindow):
         self.open_project_act.setEnabled(b)
         self.open_praat_act.setEnabled(b)
         self.filter_act.setEnabled(b)
-        #self.find_and_replace_act.setEnabled(b)
-        #self.find_act.setEnabled(b)
+        self.find_and_replace_act.setEnabled(b)
+        self.find_act.setEnabled(b)
         self.map_annotation_act.setEnabled(b)
         self.sort_az_act.setEnabled(b)
         self.sort_za_act.setEnabled(b)
@@ -392,7 +407,6 @@ class TGExplorer(QMainWindow):
         column_name = current_index.model().headerData(column_index, Qt.Orientation.Horizontal)
         self.sort_az_act.setText(f'Sort by column "{column_name}" (A to Z)')
         self.sort_za_act.setText(f'Sort by column "{column_name}" (Z to A)')
-
 
     def on_preferences(self):
         preferences = self.preferences_dlg.data()
