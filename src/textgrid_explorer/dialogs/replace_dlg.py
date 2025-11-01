@@ -152,7 +152,7 @@ class FindAndReplaceDialog(QDialog):
         self.find_next_btn.clicked.connect(lambda: self.done(5))
 
         close_btn = QPushButton('&Close')
-        close_btn.clicked.connect(lambda: self.done(0))
+        close_btn.clicked.connect(self.reject)
 
         hbox = QHBoxLayout()
         hbox.addStretch()
@@ -196,9 +196,19 @@ class FindAndReplaceDialog(QDialog):
         return self.replace_tab.data()
 
     def done(self, r):
+        """
+        Customize to emit multiple choices depending on the clicked button.
+        Aditionally, close the Dialog only if `0` or `1` (traditionally
+        reject and accept) values are passed.
+
+        Parameters
+        ----------
+        r : int
+            The clicked button value.
+        """
         self.my_clicked.emit(r)
 
-        if r == 0:
+        if r in (0, 1):
             super().done(r)
 
 class MapAnnotationDialog(QDialog):
