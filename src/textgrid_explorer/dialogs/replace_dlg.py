@@ -29,7 +29,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import (
     Qt,
-    Signal
+    Signal,
+    Slot,
 )
 
 class ReplaceTab(QWidget):
@@ -137,18 +138,21 @@ class FindAndReplaceDialog(QDialog):
         self.tabs.setTabPosition(QTabWidget.North)
         self.tabs.addTab(self.find_tab, '&Find')
         self.tabs.addTab(self.replace_tab, 'R&eplace')
-        self.tabs.currentChanged.connect(self.test_buttons)
+        self.tabs.currentChanged.connect(self.display_tab)
 
         self.replace_all_btn = QPushButton('Replace &all')
         self.replace_all_btn.clicked.connect(lambda: self.done(2))
+        self.replace_all_btn.hide()
 
         self.replace_btn = QPushButton('&Replace')
         self.replace_btn.clicked.connect(lambda: self.done(3))
+        self.replace_btn.hide()
 
         self.find_all_btn = QPushButton('F&ind all')
         self.find_all_btn.clicked.connect(lambda: self.done(4))
 
         self.find_next_btn = QPushButton('Find &next')
+        self.find_next_btn.setDefault(True)
         self.find_next_btn.clicked.connect(lambda: self.done(5))
 
         close_btn = QPushButton('&Close')
@@ -170,7 +174,9 @@ class FindAndReplaceDialog(QDialog):
 
         self.setLayout(layout)
 
-    def test_buttons(self, index):
+    @Slot(int)
+    def display_tab(self, index):
+        self.tabs.setCurrentIndex(index)
         if index == 0:
             self.replace_btn.hide()
             self.replace_all_btn.hide()
@@ -188,9 +194,6 @@ class FindAndReplaceDialog(QDialog):
 
     def set_fields(self, fields):
         self.replace_tab.set_fields(fields)
-
-    def set_current_tab(self, index):
-        self.tabs.setCurrentIndex(index)
 
     def data(self):
         return self.replace_tab.data()
