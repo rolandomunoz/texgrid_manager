@@ -46,9 +46,9 @@ class ReplaceTab(QWidget):
         self.replace_ed = QLineEdit(self)
 
         form = QFormLayout()
-        form.addRow('Fi&nd what', self.find_ed)
-        form.addRow('Re&place with', self.replace_ed)
-        form.addRow('In c&olumn', self.column_box)
+        form.addRow('In c&olumn:', self.column_box)
+        form.addRow('Fi&nd what:', self.find_ed)
+        form.addRow('Re&place with:', self.replace_ed)
 
         self.setLayout(form)
 
@@ -99,8 +99,8 @@ class FindTab(QWidget):
         self.find_ed = QLineEdit(self)
 
         form = QFormLayout()
-        form.addRow('Fi&nd what', self.find_ed)
-        form.addRow('In c&olumn', self.column_box)
+        form.addRow('In c&olumn:', self.column_box)
+        form.addRow('Fi&nd what:', self.find_ed)
 
         self.setLayout(form)
 
@@ -134,12 +134,21 @@ class FindAndReplaceDialog(QDialog):
         self.replace_tab = ReplaceTab(self)
         self.find_tab = FindTab(self)
 
+        # Connect through signal and slots widgets of the find and replace tabs
+        self.find_tab.column_box.currentIndexChanged.connect(self.replace_tab.column_box.setCurrentIndex)
+        self.replace_tab.column_box.currentIndexChanged.connect(self.find_tab.column_box.setCurrentIndex)
+
+        self.find_tab.find_ed.textChanged.connect(self.replace_tab.find_ed.setText)
+        self.replace_tab.find_ed.textChanged.connect(self.find_tab.find_ed.setText)
+
+        # Add tabs
         self.tabs = QTabWidget(self)
         self.tabs.setTabPosition(QTabWidget.North)
         self.tabs.addTab(self.find_tab, '&Find')
         self.tabs.addTab(self.replace_tab, 'R&eplace')
         self.tabs.currentChanged.connect(self.display_tab)
 
+        # Control panel
         self.replace_all_btn = QPushButton('Replace &all')
         self.replace_all_btn.clicked.connect(lambda: self.done(2))
         self.replace_all_btn.hide()
@@ -158,6 +167,7 @@ class FindAndReplaceDialog(QDialog):
         close_btn = QPushButton('&Close')
         close_btn.clicked.connect(self.reject)
 
+        # Layout
         hbox = QHBoxLayout()
         hbox.addStretch()
         hbox.addWidget(self.replace_all_btn)
