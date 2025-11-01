@@ -27,7 +27,10 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QFormLayout
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import (
+    Qt,
+    Signal
+)
 
 class ReplaceTab(QWidget):
 
@@ -117,6 +120,7 @@ class FindTab(QWidget):
         return self.column_box.currentText()
 
 class FindAndReplaceDialog(QDialog):
+    my_clicked = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -136,19 +140,19 @@ class FindAndReplaceDialog(QDialog):
         self.tabs.currentChanged.connect(self.test_buttons)
 
         self.replace_all_btn = QPushButton('Replace &all')
-        self.replace_all_btn.clicked.connect(lambda: self.done(0))
+        self.replace_all_btn.clicked.connect(lambda: self.done(2))
 
         self.replace_btn = QPushButton('&Replace')
-        self.replace_btn.clicked.connect(lambda: self.done(1))
+        self.replace_btn.clicked.connect(lambda: self.done(3))
 
         self.find_all_btn = QPushButton('F&ind all')
-        self.find_all_btn.clicked.connect(lambda: self.done(2))
+        self.find_all_btn.clicked.connect(lambda: self.done(4))
 
         self.find_next_btn = QPushButton('Find &next')
-        self.find_next_btn.clicked.connect(lambda: self.done(3))
+        self.find_next_btn.clicked.connect(lambda: self.done(5))
 
         close_btn = QPushButton('&Close')
-        close_btn.clicked.connect(self.reject)
+        close_btn.clicked.connect(lambda: self.done(0))
 
         hbox = QHBoxLayout()
         hbox.addStretch()
@@ -190,6 +194,12 @@ class FindAndReplaceDialog(QDialog):
 
     def data(self):
         return self.replace_tab.data()
+
+    def done(self, r):
+        self.my_clicked.emit(r)
+
+        if r == 0:
+            super().done(r)
 
 class MapAnnotationDialog(QDialog):
 
