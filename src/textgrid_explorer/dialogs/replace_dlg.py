@@ -47,7 +47,7 @@ class ReplaceTab(QWidget):
 
         form = QFormLayout()
         form.addRow('In c&olumn:', self.column_box)
-        form.addRow('Fi&nd what:', self.find_ed)
+        form.addRow('&Find what:', self.find_ed)
         form.addRow('Re&place with:', self.replace_ed)
 
         self.setLayout(form)
@@ -87,7 +87,7 @@ class FindTab(QWidget):
 
         form = QFormLayout()
         form.addRow('In c&olumn:', self.column_box)
-        form.addRow('Fi&nd what:', self.find_ed)
+        form.addRow('&Find what:', self.find_ed)
 
         self.setLayout(form)
 
@@ -195,16 +195,16 @@ class FindAndReplaceDialog(QDialog):
         dict_ = {
             'tab_index': tab_index,
             'column_index': -1,
-            'find': '',
+            'pattern': '',
             'replace': '',
         }
 
         if tab_index == 0:
             dict_['column_index'] = self.find_tab.current_column_field()
-            dict_['find'] = self.find_tab.find_field()
+            dict_['pattern'] = self.find_tab.find_field()
         elif tab_index == 1:
             dict_['column_index'] = self.replace_tab.current_column_field()
-            dict_['find'] = self.replace_tab.find_field()
+            dict_['pattern'] = self.replace_tab.find_field()
             dict_['replace'] = self.replace_tab.replace_field()
         return dict_
 
