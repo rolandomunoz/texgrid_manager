@@ -133,6 +133,24 @@ class TGTableModel(QAbstractTableModel):
             return my_flags
         return my_flags|Qt.ItemFlag.ItemIsEditable
 
+    def vfind(self, pattern, col_ind, start_ind=0):
+        """
+        A vertical find. It returns the first matched index.
+
+        Parameters
+        ----------
+        col_ind :
+            The column index where the search is done
+        """
+        p = re.compile(pattern)
+
+        for irow in range(start_ind, self.rowCount()):
+            index = self.index(irow, col_ind)
+            cell_text = index.data()
+            if p.search(cell_text):
+                return index
+        return None
+
     def find_and_replace(self, pattern, repl, src_column, dst_column=-1):
         '''
         Searches for a regex pattern in one column and replaces the matching
