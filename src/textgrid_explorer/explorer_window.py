@@ -130,27 +130,27 @@ class TGExplorer(QMainWindow):
         Create actions
         """
         # File
-        self.new_project_act = QAction('&New project...', self)
+        self.new_project_act = QAction(self.tr('&New project...'), self)
         self.new_project_act.setShortcut('Ctrl+N')
         self.new_project_act.triggered.connect(self.new_project_dlg.open)
 
-        self.open_project_act = QAction('&Open project...', self)
+        self.open_project_act = QAction(self.tr('&Open project...'), self)
         self.open_project_act.setShortcut('Ctrl+O')
         self.open_project_act.triggered.connect(self.on_open_project)
 
-        self.close_project_act = QAction('&Close project', self)
+        self.close_project_act = QAction(self.tr('&Close project'), self)
         self.close_project_act.triggered.connect(self.on_close_project)
 
-        self.project_settings_act = QAction('&Project settings...', self)
+        self.project_settings_act = QAction(self.tr('&Project settings...'), self)
         self.project_settings_act.setShortcut('Ctrl+R')
         self.project_settings_act.triggered.connect(self.on_project_settings)
 
-        self.quit_act = QAction('&Quit', self)
+        self.quit_act = QAction(self.tr('&Quit'), self)
         self.quit_act.setShortcut('Ctrl+Q')
         self.quit_act.triggered.connect(self.close)
 
         # Data
-        self.sort_az_act = QAction('Sort table by column (A to Z)', self)
+        self.sort_az_act = QAction(self.tr('Sort table by column (A to Z)'), self)
         self.sort_az_act.triggered.connect(self.on_sort_az)
 
         self.sort_za_act = QAction('Sort table by column (Z to A)', self)
@@ -304,6 +304,7 @@ class TGExplorer(QMainWindow):
             return
 
         dict_ = self.find_and_replace_dlg.data()
+        table_view = self.editor_view.table_view
 
         if button_index == 2: # Replace all
             proxy_model = self.editor_view.table_view.model()
@@ -320,7 +321,32 @@ class TGExplorer(QMainWindow):
             pass
 
         if button_index == 5: # Find
-            pass
+            row_index = 0
+
+            # Get row index
+            indexes = table_view.selectedIndexes()
+            if indexes:
+                row_index = indexes[0].row() + 1
+
+            proxy_model = table_view.model()
+
+            model = proxy_model.sourceModel()
+            source_index = model.vfind(
+                dict_['pattern'], dict_['column_index'], row_index
+            )
+
+            if source_index is None:
+                return
+
+            proxy_index = proxy_model.mapFromSource(source_index)
+
+            if not proxy_index.isValid(): # Found in the source, but it is hidden
+                return
+
+            sel_model = table_view.selectionModel()
+            sel_model.select(proxy_index, sel_model.SelectionFlag.ClearAndSelect)
+            table_view.setCurrentIndex(proxy_index) # Focus
+            table_view.scrollTo(proxy_index)
 
     def on_map_annotations(self):
         r = self.map_annotations_dlg.data()
