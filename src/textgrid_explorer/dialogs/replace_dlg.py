@@ -108,7 +108,10 @@ class FindTab(QWidget):
         return self.column_box.currentIndex()
 
 class FindAndReplaceDialog(QDialog):
-    my_clicked = Signal(int)
+    replace_clicked = Signal(int)
+    replace_all_clicked = Signal(int)
+    find_clicked = Signal(int)
+    find_all_clicked = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -219,7 +222,14 @@ class FindAndReplaceDialog(QDialog):
         r : int
             The clicked button value.
         """
-        self.my_clicked.emit(r)
+        if r == 2:
+            self.replace_all_clicked.emit(r)
+        elif r == 3:
+            self.replace_clicked.emit(r)
+        elif r == 4:
+            self.find_all_clicked.emit(r)
+        elif r == 5:
+            self.find_clicked.emit(r)
 
         if r in (0, 1):
             super().done(r)
