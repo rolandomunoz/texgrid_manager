@@ -34,6 +34,7 @@ from PySide6.QtCore import (
 )
 
 from PySide6.QtGui import (
+    QPixmap,
     QAction,
     QIcon,
 )
@@ -44,6 +45,7 @@ from textgrid_explorer.dialogs import FilterByDialog
 from textgrid_explorer.dialogs import FindAndReplaceDialog
 from textgrid_explorer.dialogs import MapAnnotationDialog
 from textgrid_explorer.dialogs import PreferencesDialog
+from textgrid_explorer.resources import rc_icons
 from textgrid_explorer import utils
 
 resources_dir = resources.files('textgrid_explorer.resources')
@@ -157,12 +159,12 @@ class TGExplorer(QMainWindow):
         self.sort_za_act = QAction(self.tr('Sort table by column (Z to A)'), self)
         self.sort_za_act.triggered.connect(self.on_sort_za)
 
-        self.filter_act = QAction(self.tr('&Filter by...'), self)
-        self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
+        funnel_icon = QIcon(QPixmap(':icons/funnel.png'))
+        self.filter_act = QAction(funnel_icon, self.tr('&Filter by...'), self)
         self.filter_act.triggered.connect(self.open_filter_dlg)
 
-        self.open_praat_act = QAction(self.tr('&Open selection in Praat'), self)
-        self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
+        praat_icon = QIcon(QPixmap(':icons/praat_icon.png'))
+        self.open_praat_act = QAction(praat_icon, self.tr('&Open selection in Praat'), self)
         self.open_praat_act.triggered.connect(self.editor_view.open_praat)
         self.open_praat_act.setShortcut('Alt+P')
 
