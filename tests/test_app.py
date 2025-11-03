@@ -21,4 +21,5 @@ sys.path.insert(0, str(package_dir))
 
 import textgrid_explorer
 
-textgrid_explorer.main()
+if __name__ == '__main__':
+    textgrid_explorer.main()
