@@ -49,7 +49,6 @@ from textgrid_explorer.resources import rc_icons
 from textgrid_explorer import utils
 
 resources_dir = resources.files('textgrid_explorer.resources')
-icon_dir = resources_dir / 'icons'
 settings = QSettings('Gilgamesh', 'TGExplorer')
 
 class EditorView(QWidget):
@@ -182,7 +181,6 @@ class TGExplorer(QMainWindow):
 
         self.preferences_act = QAction(self.tr('&Preferences...'), self)
         self.preferences_act.triggered.connect(self.open_preferences_dlg)
-        #self.preferences_act.setIcon(QIcon(str(icon_dir/'preferences-desktop.png')))
 
     def init_menubar(self):
         menu_bar = QMenuBar()
