@@ -238,7 +238,7 @@ class TGExplorer(QMainWindow):
         self.find_and_replace_dlg.replace_all_clicked.connect(self.on_replace_all)
         self.find_and_replace_dlg.replace_clicked.connect(self.on_replace)
         self.find_and_replace_dlg.find_all_clicked.connect(self.on_find_all)
-        self.find_and_replace_dlg.find_clicked.connect(self.on_find)
+        self.find_and_replace_dlg.find_clicked.connect(lambda: self.on_find(1))
 
         self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
