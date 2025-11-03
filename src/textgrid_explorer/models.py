@@ -133,6 +133,15 @@ class TGTableModel(QAbstractTableModel):
             return my_flags
         return my_flags|Qt.ItemFlag.ItemIsEditable
 
+    def replace(self, indexes, pattern, repl):
+        p = re.compile(pattern)
+        for index in indexes:
+            item_str = index.data()
+            if not p.search(item_str):
+                continue
+            new_str = p.sub(repl, item_str)
+            self.setData(index, new_str)
+
     def replace_all(self, pattern, repl, src_column, dst_column=-1):
         '''
         Searches for a regex pattern in one column and replaces the matching
