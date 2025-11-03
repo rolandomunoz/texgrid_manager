@@ -13,6 +13,7 @@
 #
 #   You should have received a copy of the GNU General Public License along
 #   with this program.  If not, see <https://www.gnu.org/licenses/>.
+import re
 import shutil
 import subprocess
 from importlib import resources
@@ -153,38 +154,38 @@ class TGExplorer(QMainWindow):
         self.sort_az_act = QAction(self.tr('Sort table by column (A to Z)'), self)
         self.sort_az_act.triggered.connect(self.on_sort_az)
 
-        self.sort_za_act = QAction('Sort table by column (Z to A)', self)
+        self.sort_za_act = QAction(self.tr('Sort table by column (Z to A)'), self)
         self.sort_za_act.triggered.connect(self.on_sort_za)
 
-        self.filter_act = QAction('&Filter by...', self)
+        self.filter_act = QAction(self.tr('&Filter by...'), self)
         self.filter_act.setIcon(QIcon(str(icon_dir/'funnel.png')))
         self.filter_act.triggered.connect(self.open_filter_dlg)
 
-        self.open_praat_act = QAction('&Open selection in Praat', self)
+        self.open_praat_act = QAction(self.tr('&Open selection in Praat'), self)
         self.open_praat_act.setIcon(QIcon(str(icon_dir/'praat_icon.png')))
         self.open_praat_act.triggered.connect(self.editor_view.open_praat)
         self.open_praat_act.setShortcut('Alt+P')
 
         # Edit
-        self.find_and_replace_act = QAction('&Find and replace...', self)
+        self.find_and_replace_act = QAction(self.tr('&Find and replace...'), self)
         self.find_and_replace_act.setShortcut('Ctrl+H')
         self.find_and_replace_act.triggered.connect(lambda: self.open_find_and_replace_dlg(1))
 
-        self.find_act = QAction('&Find...', self)
+        self.find_act = QAction(self.tr('&Find...'), self)
         self.find_act.setShortcut('Ctrl+F')
         self.find_act.triggered.connect(lambda: self.open_find_and_replace_dlg(0))
 
-        self.map_annotation_act = QAction('&Map annotation...', self)
+        self.map_annotation_act = QAction(self.tr('&Map annotation...'), self)
         self.map_annotation_act.triggered.connect(self.open_map_annotation_dlg)
 
-        self.preferences_act = QAction('&Preferences...', self)
+        self.preferences_act = QAction(self.tr('&Preferences...'), self)
         self.preferences_act.triggered.connect(self.open_preferences_dlg)
         #self.preferences_act.setIcon(QIcon(str(icon_dir/'preferences-desktop.png')))
 
     def init_menubar(self):
         menu_bar = QMenuBar()
 
-        file_bar = menu_bar.addMenu('&File')
+        file_bar = menu_bar.addMenu(self.tr('&File'))
         file_bar.addAction(self.new_project_act)
         file_bar.addAction(self.open_project_act)
         file_bar.addAction(self.close_project_act)
@@ -193,14 +194,14 @@ class TGExplorer(QMainWindow):
         file_bar.addSeparator()
         file_bar.addAction(self.quit_act)
 
-        edit_bar = menu_bar.addMenu('&Edit')
+        edit_bar = menu_bar.addMenu(self.tr('&Edit'))
         edit_bar.addAction(self.find_and_replace_act)
         edit_bar.addAction(self.find_act)
         edit_bar.addAction(self.map_annotation_act)
         edit_bar.addSeparator()
         edit_bar.addAction(self.preferences_act)
 
-        data_bar = menu_bar.addMenu('&Data')
+        data_bar = menu_bar.addMenu(self.tr('&Data'))
         data_bar.addAction(self.sort_az_act)
         data_bar.addAction(self.sort_za_act)
         data_bar.addSeparator()
@@ -234,7 +235,10 @@ class TGExplorer(QMainWindow):
         self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
 
         self.find_and_replace_dlg = FindAndReplaceDialog(self)
-        self.find_and_replace_dlg.my_clicked.connect(self.on_find_and_replace)
+        self.find_and_replace_dlg.replace_all_clicked.connect(self.on_replace_all)
+        self.find_and_replace_dlg.replace_clicked.connect(self.on_replace)
+        self.find_and_replace_dlg.find_all_clicked.connect(self.on_find_all)
+        self.find_and_replace_dlg.find_clicked.connect(self.on_find)
 
         self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
@@ -296,64 +300,118 @@ class TGExplorer(QMainWindow):
         self.map_annotations_dlg.set_fields(fields)
         self.map_annotations_dlg.show()
 
-    def on_find_and_replace(self, button_index):
-        if button_index == 0: # Rejected button
-            return
-
-        if button_index == 1: # Accept button
-            return
-
-        dict_ = self.find_and_replace_dlg.data()
+    def on_find(self, step=1):
+        """
+        Find the next item in the specified column starting from the
+        selected row.
+        """
         table_view = self.editor_view.table_view
+        proxy_model = table_view.model()
+        source_model = proxy_model.sourceModel()
 
-        if button_index == 2: # Replace all
-            proxy_model = self.editor_view.table_view.model()
-            model = proxy_model.sourceModel()
+        # 1. From the QDialog, get the column index and the search pattern
+        dlg_dict = self.find_and_replace_dlg.data()
+        col_ind = dlg_dict['column_index']
+        pattern = dlg_dict['pattern']
 
-            model.find_and_replace(
-                dict_['find'], dict_['replace'], dict_['column_index']
-            )
+        # 2. From the QTableView, get the current selected row
+        row_ind = 0
+        proxy_indexes = table_view.selectedIndexes()
+        if proxy_indexes:
+            current_source_index = proxy_model.mapToSource(proxy_indexes[0])
+            row_ind = current_source_index.row() + step
 
-        if button_index == 3: # Replace
-            pass
-
-        if button_index == 4: # Find all
-            pass
-
-        if button_index == 5: # Find
-            row_index = 0
-
-            # Get row index
-            indexes = table_view.selectedIndexes()
-            if indexes:
-                row_index = indexes[0].row() + 1
-
-            proxy_model = table_view.model()
-
-            model = proxy_model.sourceModel()
-            source_index = model.vfind(
-                dict_['pattern'], dict_['column_index'], row_index
-            )
-
-            if source_index is None:
-                return
+        # 3. Find the next item moving on from the current selected row,
+        # the specified column and the pattern
+        p = re.compile(pattern)
+        for i in range(row_ind, source_model.rowCount()):
+            source_index = source_model.index(i, col_ind)
+            cell_text = source_index.data()
+            if not p.search(cell_text):
+                continue
 
             proxy_index = proxy_model.mapFromSource(source_index)
-
-            if not proxy_index.isValid(): # Found in the source, but it is hidden
-                return
+            if not proxy_index.isValid():
+                continue
 
             sel_model = table_view.selectionModel()
             sel_model.select(proxy_index, sel_model.SelectionFlag.ClearAndSelect)
             table_view.setCurrentIndex(proxy_index) # Focus
             table_view.scrollTo(proxy_index)
+            return True
+        return False
+
+    def on_find_all(self):
+        print('Find All')
+
+    def on_replace(self):
+        """
+        Replace the items, one by one, that match a pattern in the
+        QTableView.
+        """
+        table_view = self.editor_view.table_view
+
+        # 1. Use the find to match a value
+        match = self.on_find(0)
+
+        if not match:
+            return False
+
+        # 2. From the QDialog, get the column index, the search pattern
+        #    and the replace
+        dlg_dict = self.find_and_replace_dlg.data()
+        col_ind = dlg_dict['column_index']
+        pattern = dlg_dict['pattern']
+        repl = dlg_dict['replace']
+
+        # 3. Once match is found, replace the item
+        proxy_model = table_view.model()
+        proxy_indexes = table_view.selectedIndexes()
+        if not proxy_indexes:
+            return False
+
+        proxy_index = proxy_indexes[0]
+        source_index = proxy_model.mapToSource(proxy_index)
+
+        source_model = proxy_model.sourceModel()
+        source_model.replace([source_index], pattern, repl)
+        return True
+
+    def on_replace_all(self):
+        """
+        Replace all items in the specified column that match a pattern.
+        """
+        table_view = self.editor_view.table_view
+
+        # 1. From the QDialog, get the column index, the search pattern
+        #    and the replace
+        dlg_dict = self.find_and_replace_dlg.data()
+        col_ind = dlg_dict['column_index']
+        pattern = dlg_dict['pattern']
+        repl = dlg_dict['replace']
+
+        # 2. Get the all the indexes from the selected column
+        proxy_model = table_view.model()
+        source_model = proxy_model.sourceModel()
+
+        source_indexes = []
+        for i in range(proxy_model.rowCount()):
+            proxy_item = proxy_model.index(i, col_ind)
+            source_item = proxy_model.mapToSource(proxy_item)
+            if not source_item.isValid():
+                continue
+            source_indexes.append(source_item)
+
+        # 3. Replace All
+        source_model.replace(source_indexes, pattern, repl)
+        return True
 
     def on_map_annotations(self):
         r = self.map_annotations_dlg.data()
 
         proxy_model = self.editor_view.table_view.model()
         model = proxy_model.sourceModel()
-        model.find_and_replace(
+        model.replace_all(
             r.find, r.replace, r.src_column_index, r.dst_column_index,
         )
 
