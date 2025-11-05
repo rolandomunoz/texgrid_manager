@@ -26,31 +26,34 @@ classifiers = [
 ]
 dependencies = []
 
+[project.gui-scripts]
+TGExplorer = "textgrid_explorer:main"
+
 [project.urls]
 Documentation = "https://github.com/rolandomunoz/textgrid_explorer/blob/main/README.md"
 Issues = "https://github.com/rolandomunoz/textgrid_explorer/issues"
 Source = "https://github.com/rolandomunoz/textgrid_explorer"
 
 [tool.hatch.version]
-path = "src/textgrid_manager/__about__.py"
+path = "src/textgrid_explorer/__about__.py"
 
 [tool.hatch.envs.types]
 extra-dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/textgrid_manager tests}"
+check = "mypy --install-types --non-interactive {args:src/textgrid_explorer tests}"
 
 [tool.coverage.run]
-source_pkgs = ["textgrid_manager", "tests"]
+source_pkgs = ["textgrid_explorer", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/textgrid_manager/__about__.py",
+  "src/textgrid_explorer/__about__.py",
 ]
 
 [tool.coverage.paths]
-textgrid_manager = ["src/textgrid_explorer", "*/textgrid_explorer/src/textgrid_explorer"]
+textgrid_explorer = ["src/textgrid_explorer", "*/textgrid_explorer/src/textgrid_explorer"]
 tests = ["tests", "*/textgrid_explorer/tests"]
 
 [tool.coverage.report]
