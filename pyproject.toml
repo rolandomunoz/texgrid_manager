@@ -3,15 +3,15 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "textgrid-manager"
+name = "textgrid-explorer"
 dynamic = ["version"]
-description = 'A tool to manage TextGrid files with an integrated GUI'
+description = 'Edit annotations in multiple TextGrid files'
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
+license = "GPL-3.0-or-later"
 keywords = []
 authors = [
-  { name = "U.N. Owen", email = "void@some.where" },
+  { name = "Rolando Muñoz", email = "rolando.muar@gmail.com" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -27,9 +27,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/U.N. Owen/textgrid-manager#readme"
-Issues = "https://github.com/U.N. Owen/textgrid-manager/issues"
-Source = "https://github.com/U.N. Owen/textgrid-manager"
+Documentation = "https://github.com/rolandomunoz/textgrid_explorer/blob/main/README.md"
+Issues = "https://github.com/rolandomunoz/textgrid_explorer/issues"
+Source = "https://github.com/rolandomunoz/textgrid_explorer"
 
 [tool.hatch.version]
 path = "src/textgrid_manager/__about__.py"
@@ -50,8 +50,8 @@ omit = [
 ]
 
 [tool.coverage.paths]
-textgrid_manager = ["src/textgrid_manager", "*/textgrid-manager/src/textgrid_manager"]
-tests = ["tests", "*/textgrid-manager/tests"]
+textgrid_manager = ["src/textgrid_explorer", "*/textgrid_explorer/src/textgrid_explorer"]
+tests = ["tests", "*/textgrid_explorer/tests"]
 
 [tool.coverage.report]
 exclude_lines = [
