@@ -49,7 +49,7 @@ from textgrid_explorer.resources import rc_icons
 from textgrid_explorer import utils
 
 resources_dir = resources.files('textgrid_explorer.resources')
-settings = QSettings('Gilgamesh', 'TGExplorer')
+settings = QSettings('Gilgamesh', 'textgrid_explorer')
 
 class EditorView(QWidget):
 
@@ -60,7 +60,7 @@ class EditorView(QWidget):
     def init_ui(self):
         self.table_view = QTableView()
 
-        model = TGTableModel([])
+        model = TGTableModel()
         proxy_model = QSortFilterProxyModel(model)
         proxy_model.setSourceModel(model)
         self.table_view.setModel(proxy_model)
@@ -68,30 +68,6 @@ class EditorView(QWidget):
         box_layout = QVBoxLayout()
         box_layout.addWidget(self.table_view)
         self.setLayout(box_layout)
-
-    def open_praat(self):
-        indexes = self.table_view.selectedIndexes()
-        if not indexes:
-            return
-        index = indexes[0]
-        textgrid_path = index.data(Qt.ItemDataRole.UserRole)[0]
-        sound_path = textgrid_path.with_suffix('.wav')
-        interval = index.data(Qt.ItemDataRole.UserRole)[1]
-
-        praat_path_ = settings.value('praat/path')
-        praat_path = shutil.which(praat_path_)
-        if praat_path is None:
-            QMessageBox.critical(
-                self,
-                'Open selection in Praat',
-                'It seems like the <b>Praat path</b> does not exist. Please, go to <b>Edit > Preferences</br'
-            )
-
-        praat_maximize_audibility = settings.value('praat/maximize_audibility')
-        script_path = resources_dir / 'open_file.praat'
-        subprocess.run(
-            [praat_path, '--hide-picture', '--new-send', script_path, textgrid_path, sound_path, str(praat_maximize_audibility), str(interval.xmin), str(interval.xmax)]
-        )
 
     def filter_rows(self, key_column, str_expression):
         proxy_model = self.table_view.model()
@@ -164,7 +140,7 @@ class TGExplorer(QMainWindow):
 
         praat_icon = QIcon(QPixmap(':icons/praat_icon.png'))
         self.open_praat_act = QAction(praat_icon, self.tr('&Open selection in Praat'), self)
-        self.open_praat_act.triggered.connect(self.editor_view.open_praat)
+        self.open_praat_act.triggered.connect(self.on_open_praat)
         self.open_praat_act.setShortcut('Alt+P')
 
         # Edit
@@ -244,10 +220,15 @@ class TGExplorer(QMainWindow):
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
 
     def open_preferences_dlg(self):
-        praat_path = settings.value('praat/path')
-        praat_maximize_audibility = settings.value('praat/maximize_audibility')
+        praat_path = settings.value('praat_path')
+        praat_maximize_audibility = settings.value('praat_maximize_audibility')
+        praat_activate_plugins = settings.value('praat_activate_plugins')
 
-        self.preferences_dlg.set_data(praat_path, int(praat_maximize_audibility))
+        self.preferences_dlg.set_values(
+            praat_path,
+            bool(int(praat_maximize_audibility)),
+            bool(int(praat_activate_plugins)),
+        )
         self.preferences_dlg.open()
 
     def open_filter_dlg(self):
@@ -415,6 +396,49 @@ class TGExplorer(QMainWindow):
             r.find, r.replace, r.src_column_index, r.dst_column_index,
         )
 
+    def on_open_praat(self):
+        table_view = self.editor_view.table_view
+        indexes = table_view.selectedIndexes()
+        if not indexes:
+            return
+        index = indexes[0]
+        textgrid_path = index.data(Qt.ItemDataRole.UserRole)[0]
+        sound_path = textgrid_path.with_suffix('.wav')
+        interval = index.data(Qt.ItemDataRole.UserRole)[1]
+
+        praat_path_ = settings.value('praat_path')
+        praat_path = shutil.which(praat_path_)
+        if praat_path is None:
+            QMessageBox.critical(
+                self,
+                'Open selection in Praat',
+                'It seems like the <b>Praat path</b> does not exist. Please, go to <b>Edit > Preferences</br'
+            )
+
+        maximize_audibility = settings.value('praat_maximize_audibility')
+        maximize_audibility = int(maximize_audibility)
+
+        activate_plugins = settings.value('praat_activate_plugins') # On Linux it is a str'
+        activate_plugins = bool(int(activate_plugins))
+
+        script_path = resources_dir / 'open_file.praat'
+        args = [
+            praat_path,
+            '--hide-picture',
+            '--no-plugins',
+            '--new-send',
+            script_path,
+            textgrid_path,
+            sound_path,
+            str(maximize_audibility),
+            str(interval.xmin),
+            str(interval.xmax)
+        ]
+
+        if activate_plugins:
+            args.pop(2) # Remove --no-plugins
+        subprocess.run(args)
+
     def on_enabled_buttons(self, b):
         self.close_project_act.setEnabled(b)
         self.project_settings_act.setEnabled(b)
@@ -493,6 +517,7 @@ class TGExplorer(QMainWindow):
         self.sort_za_act.setText(f'Sort by column "{column_name}" (Z to A)')
 
     def on_preferences(self):
-        preferences = self.preferences_dlg.data()
-        settings.setValue('praat/path', preferences.praat_path)
-        settings.setValue('praat/maximize_audibility', preferences.praat_maximize_audibility)
+        dict_ = self.preferences_dlg.to_dict()
+        settings.setValue('praat_path', dict_['praat_path'])
+        settings.setValue('praat_maximize_audibility', int(dict_['praat_maximize_audibility']))
+        settings.setValue('praat_activate_plugins', int(dict_['praat_activate_plugins']))
