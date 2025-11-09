@@ -18,6 +18,20 @@ from pprint import pprint
 
 import mytextgrid
 
+def read_textgrid(path):
+    try:
+        tg = mytextgrid.read_from_file(path, encoding='utf-8')
+        tg.file_path = path
+        for tier in tg:
+            tg.file_path = path
+            tg.parent = tg
+            for item in tier:
+                item.file_path =path
+                item.tier = tier
+                item.textgrid = tg
+        return tg
+    except Exception as e:
+        return None
 
 def get_tier_names(source_dir):
     source_dir = Path(source_dir)
@@ -25,12 +39,11 @@ def get_tier_names(source_dir):
     names = []
     for path in source_dir.rglob('*.TextGrid'):
         try:
-            tg = mytextgrid.read_from_file(path, encoding='utf-8')
-            tg._path = path
+            tg = read_textgrid(path)
         except Exception as e:
             print(f'Could not read {path}: {e}')
             continue
-       
+
         for tier in tg:
             name = tier.name
             if name in names:
@@ -55,12 +68,12 @@ def create_aligned_tier_table(source_dir, primary_tier_name, secondary_tier_name
     Returns
     -------
     tuple
-        A tuple containing a list of headers and a list of lists representing 
+        A tuple containing a list of headers and a list of lists representing
         the aligned table data.
     """
     # Ensure the source directory path is a Path object
     source_dir = Path(source_dir)
-    if not source_dir.is_absolute():
+    if not source_dir.is_dir() or not source_dir.is_absolute():
         return [], []
 
     # Initialize data structures
@@ -70,16 +83,13 @@ def create_aligned_tier_table(source_dir, primary_tier_name, secondary_tier_name
     # Process each TextGrid file in the source directory
     for path in source_dir.rglob('*.TextGrid'):
         try:
-            tg = mytextgrid.read_from_file(path, encoding='utf-8')
-            tg._path = path
+            tg = read_textgrid(path)
         except Exception as e:
             print(f'Could not read {path}: {e}')
             continue
 
         # Get the primary tier
         for tier in tg:
-            tier.parent = tg
-
             primary_tiers = [tier for tier in tg if tier.name == primary_tier_name]
             if not primary_tiers:
                 print(f'Primary tier "{primary_tier_name}" not found in {path}. Skipping.')
@@ -90,7 +100,7 @@ def create_aligned_tier_table(source_dir, primary_tier_name, secondary_tier_name
             for primary_interval in primary_tier:
                 if not primary_interval.text.strip():
                     continue
- 
+
                 interval_times = (primary_interval.xmin, primary_interval.xmax)
 
                 row = [None]*len(headers)
@@ -113,6 +123,6 @@ def create_aligned_tier_table(source_dir, primary_tier_name, secondary_tier_name
                             except:
                                 continue
     # Convert the dictionary of aligned data into a list of lists for the table model
-#    pprint(aligned_data)   
+#    pprint(aligned_data)
     table_rows = list(aligned_data.values())
     return headers, table_rows
