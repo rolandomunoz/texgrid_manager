@@ -27,7 +27,7 @@ classifiers = [
 dependencies = []
 
 [project.gui-scripts]
-TGExplorer = "textgrid_explorer:main"
+textgrid_explorer = "textgrid_explorer:main"
 
 [project.urls]
 Documentation = "https://github.com/rolandomunoz/textgrid_explorer/blob/main/README.md"
