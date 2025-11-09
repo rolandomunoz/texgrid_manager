@@ -49,7 +49,7 @@ class NewProjectDialog(QDialog):
         textgrid_dir_btn.clicked.connect(self._on_textgrid_dir_btn)
 
         update_btn = QPushButton('&Scan TextGrid files', self)
-        update_btn.clicked.connect(self.on_scan_tiers)
+        update_btn.clicked.connect(self._on_scan_tiers)
 
         self.primary_tier = QComboBox(self)
         self.primary_tier.currentTextChanged.connect(self._on_primary_tier)
@@ -97,7 +97,7 @@ class NewProjectDialog(QDialog):
         main_box.addLayout(ctrl_layout)
         self.setLayout(main_box)
 
-    def on_scan_tiers(self):
+    def _on_scan_tiers(self):
         src_dir_str = self.textgrid_dir_ed.text()
         src_dir = Path(src_dir_str)
 
