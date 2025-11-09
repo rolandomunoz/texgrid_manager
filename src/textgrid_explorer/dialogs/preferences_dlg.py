@@ -13,8 +13,6 @@
 #
 #   You should have received a copy of the GNU General Public License along
 #   with this program.  If not, see <https://www.gnu.org/licenses/>.
-from collections import namedtuple
-
 from PySide6.QtWidgets import (
     QDialog,
     QWidget,
@@ -39,33 +37,37 @@ class PraatTab(QWidget):
         self.maximize_audibility_checkbox = QCheckBox(
             'Maximize audibility'
         )
-
+        self.plugins_checkbox = QCheckBox(
+            'Activate plug-ins'
+        )
         form = QFormLayout()
         form.addRow('Path', self.path_ed)
         form.addRow(self.maximize_audibility_checkbox)
+        form.addRow(self.plugins_checkbox)
         self.setLayout(form)
 
-    def data(self):
-        PraatPreferences = namedtuple('PraatPreferences', ['path', 'maximize_audibility'])
+    def to_dict(self):
+        dict_ = {
+            'praat_path': self.path_ed.text(),
+            'praat_maximize_audibility': self.maximize_audibility_checkbox.isChecked(),
+            'praat_activate_plugins': self.plugins_checkbox.isChecked(),
+        }
+        return dict_
 
-        results = PraatPreferences(
-            self.path_ed.text(),
-            int(self.maximize_audibility_checkbox.isChecked()),
-        )
-        return results
-
-    def set_data(self, praat_path=None, maximize_audibility=None):
-        if not praat_path is None:
-            self.path_ed.setText(praat_path)
-
-        if not maximize_audibility is None:
-            self.maximize_audibility_checkbox.setChecked(maximize_audibility)
+    def set_values(self, praat_path: str, maximize_audibility: bool, activate_plugins: bool) -> None:
+        """
+        Set widget values.
+        """
+        self.path_ed.setText(praat_path)
+        self.maximize_audibility_checkbox.setChecked(maximize_audibility)
+        self.plugins_checkbox.setChecked(activate_plugins)
 
 class PreferencesDialog(QDialog):
 
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle('Preferences')
+        self.setMinimumWidth(500)
         self.init_ui()
 
     def init_ui(self):
@@ -83,6 +85,7 @@ class PreferencesDialog(QDialog):
         cancel_btn.clicked.connect(self.reject)
 
         hbox = QHBoxLayout()
+        hbox.addStretch()
         hbox.addWidget(ok_btn)
         hbox.addWidget(cancel_btn)
 
@@ -92,15 +95,19 @@ class PreferencesDialog(QDialog):
 
         self.setLayout(layout)
 
-    def data(self):
-        praat = self.praat_tab.data()
+    def to_dict(self):
+        """
+        Returns
+        -------
+        dict of {'path': str, 'maximize_audibility':bool, 'activate_plugins':bool}
+        """
+        praat_dict = self.praat_tab.to_dict()
 
-        Preferences = namedtuple('Preferences', ['praat_path', 'praat_maximize_audibility'])
-        prefs = Preferences(
-            praat.path,
-            praat.maximize_audibility,
+        return praat_dict
+
+    def set_values(self, praat_path: str, praat_maximize_audibility: bool, praat_activate_plugins: bool) -> None:
+        self.praat_tab.set_values(
+            praat_path,
+            praat_maximize_audibility,
+            praat_activate_plugins
         )
-        return prefs
-
-    def set_data(self, praat_path=None, praat_maximize_audibility=None):
-        self.praat_tab.set_data(praat_path, praat_maximize_audibility)
