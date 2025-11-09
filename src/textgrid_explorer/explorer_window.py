@@ -117,7 +117,7 @@ class TGExplorer(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('TGExplorer')
+        self.setWindowTitle('TextGrid Explorer')
         self.setMinimumSize(800, 500)
         #self.showMaximized()
         self.init_ui()
@@ -434,7 +434,7 @@ class TGExplorer(QMainWindow):
         pass
 
     def on_close_project(self):
-        self.editor_view.load_textgrids_from_dir('')
+        self.editor_view.set_table_data([], [])
         self.on_enabled_buttons(False)
 
     def on_load_data(self):
