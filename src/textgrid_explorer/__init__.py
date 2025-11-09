@@ -22,7 +22,7 @@ from PySide6.QtCore import QSettings
 from textgrid_explorer.explorer_window import TGExplorer
 
 def init_preferences():
-    settings = QSettings('Gilgamesh', 'TGExplorer')
+    settings = QSettings('Gilgamesh', 'textgrid_explorer')
 
     if not settings.contains('data_dir'):
         settings.setValue('data_dir', '')
@@ -30,24 +30,25 @@ def init_preferences():
     if not settings.contains('dict_path'):
         settings.setValue('dict_path', '')
 
-    if not settings.contains('praat/path'):
+    if not settings.contains('praat_path'):
         praat_path = ''
         if platform.system() == 'Windows':
             praat_path = 'Praat.exe'
-        elif platform.system() == 'Linux':
+        elif platform.system() in ('Linux', 'Darwin'):
             praat_path = 'praat'
-        elif platform.system() == 'Darwin':
-            praat_path = 'praat'
-        settings.setValue('praat/path', praat_path)
+        settings.setValue('praat_path', praat_path)
 
-    if not settings.contains('praat/maximize_audibility'):
-        settings.setValue('praat/maximize_audibility', 0)
+    if not settings.contains('praat_maximize_audibility'):
+        settings.setValue('praat_maximize_audibility', 0)
+
+    if not settings.contains('praat_activate_plugins'):
+        settings.setValue('praat_activate_plugins', 0)
 
 def main():
-    init_preferences()   
+    init_preferences()
     app = QApplication(sys.argv)
     # cli_arguments = app.arguments()
-    app.setStyle('Fusion')
+    #app.setStyle('Windows')
     main_window = TGExplorer()
     main_window.show()
     app.exec()
