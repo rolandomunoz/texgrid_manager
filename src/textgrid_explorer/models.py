@@ -13,10 +13,7 @@
 #
 #   You should have received a copy of the GNU General Public License along
 #   with this program.  If not, see <https://www.gnu.org/licenses/>.
-import json
 import re
-from pathlib import Path
-from importlib import resources
 
 from PySide6.QtCore import (
     QAbstractTableModel,
@@ -30,17 +27,12 @@ from PySide6.QtGui import (
     QColor,
     QBrush
 )
-from textgrid_explorer import utils
-
-icons_dir = resources.files('textgrid_explorer.resources') / 'fuge-icons'
 
 class TGTableModel(QAbstractTableModel):
 
-    def __init__(self, data=None):
+    def __init__(self):
         super().__init__()
-        if data is None:
-            data = []
-        self._data = data
+        self._data = []
         self._headers = []
 
     def set_full_dataset(self, headers, new_data):
@@ -64,16 +56,26 @@ class TGTableModel(QAbstractTableModel):
         return section+1
 
     def data(self, index=QModelIndex(), role=Qt.ItemDataRole.DisplayRole):
+        """
+        Underlying data structure is a list.
+        [
+            `pathlib.Path`, # Item from TextGrid property
+            `mytextgrid.Interval`, # Item from primary tier
+            `mytextgrid.Interval` or None, # Items from secondary tiers
+            ...
+            `mytextgrid.Interval` or None, # Items from secondary tiers
+        ]
+        """
         row, column = index.row(), index.column()
         item = self._data[row][column]
 
-        # [`pathlib.Path`, `mytextgrid.Interval`, None, ...]
         if role == Qt.ItemDataRole.DisplayRole:
             if column == 0: # first column is `pathlib.Path` object
                 return item.name
 
             if item is None: # Item is None
                 return ''
+
             return item.text # `Interval` object
 
         elif role == Qt.ItemDataRole.BackgroundRole:
@@ -83,9 +85,11 @@ class TGTableModel(QAbstractTableModel):
 
         elif role == Qt.ItemDataRole.EditRole:
             if column == 0:
-                return ''
+                return item.name
+
             if item is None:
                 return ''
+
             return item.text
 
         elif role == Qt.ItemDataRole.UserRole:
@@ -107,8 +111,10 @@ class TGTableModel(QAbstractTableModel):
             return False
 
         item.text = value
-        item.parent.parent.write(item.parent.parent._path) #Change in the future
-        self.dataChanged.emit(index, index, Qt.ItemDataRole.DisplayRole)
+        self._data[row][column] = item
+
+        item.textgrid.write(item.file_path) #Change in the future
+        self.dataChanged.emit(index, index)
         return True
 
     def append_data(self, dict_):
