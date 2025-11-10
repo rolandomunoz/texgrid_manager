@@ -29,6 +29,7 @@ def read_textgrid(path):
                 item.file_path =path
                 item.tier = tier
                 item.textgrid = tg
+                item.modified = False
         return tg
     except Exception as e:
         return None
