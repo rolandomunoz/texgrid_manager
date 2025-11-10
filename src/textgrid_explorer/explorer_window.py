@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 from PySide6.QtCore import (
+    QItemSelectionRange,
     QSettings,
     QSortFilterProxyModel,
     Qt,
@@ -56,11 +57,13 @@ class EditorView(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.init_ui()
+        self._modified_indexes = set()
 
     def init_ui(self):
         self.table_view = QTableView()
 
         model = TGTableModel()
+        model.dataChanged.connect(self.on_changed_indexes)
         proxy_model = QSortFilterProxyModel(model)
         proxy_model.setSourceModel(model)
         self.table_view.setModel(proxy_model)
@@ -68,6 +71,14 @@ class EditorView(QWidget):
         box_layout = QVBoxLayout()
         box_layout.addWidget(self.table_view)
         self.setLayout(box_layout)
+
+    def on_changed_indexes(self, topleft, bottomright, roles):
+        if not topleft.isValid() or not topleft.isValid():
+            return
+        selection_range = QItemSelectionRange(topleft, bottomright)
+        indexes = selection_range.indexes()
+        for index in indexes:
+            self._modified_indexes.add(index)
 
     def filter_rows(self, key_column, str_expression):
         proxy_model = self.table_view.model()
@@ -89,6 +100,15 @@ class EditorView(QWidget):
         model = self.table_view.model().sourceModel()
         model.set_full_dataset(headers, data)
 
+    def model(self):
+        return self.table_view.model()
+
+    def modified_indexes(self):
+        return self._modified_indexes
+
+    def clear_modified_indexes(self):
+        self._modified_indexes.clear()
+
 class TGExplorer(QMainWindow):
 
     def __init__(self):
@@ -97,13 +117,13 @@ class TGExplorer(QMainWindow):
         self.setMinimumSize(800, 500)
         #self.showMaximized()
         self.init_ui()
-        self.init_dialogs()
-        self.init_actions()
-        self.init_menubar()
-        self.init_toolbar()
+        self.create_dialogs()
+        self.create_actions()
+        self.create_menubar()
+        self.create_toolbar()
         self.on_enabled_buttons(False)
 
-    def init_actions(self):
+    def create_actions(self):
         """
         Create actions
         """
@@ -122,6 +142,11 @@ class TGExplorer(QMainWindow):
         self.project_settings_act = QAction(self.tr('&Project settings...'), self)
         self.project_settings_act.setShortcut('Ctrl+R')
         self.project_settings_act.triggered.connect(self.on_project_settings)
+
+        save_icon = QIcon(QPixmap(':icons/disk.png'))
+        self.save_changes_act = QAction(save_icon, self.tr('&Save Changes'), self)
+        self.save_changes_act.setShortcut('Ctrl+S')
+        self.save_changes_act.triggered.connect(self.on_save_changes)
 
         self.quit_act = QAction(self.tr('&Quit'), self)
         self.quit_act.setShortcut('Ctrl+Q')
@@ -158,7 +183,7 @@ class TGExplorer(QMainWindow):
         self.preferences_act = QAction(self.tr('&Preferences...'), self)
         self.preferences_act.triggered.connect(self.open_preferences_dlg)
 
-    def init_menubar(self):
+    def create_menubar(self):
         menu_bar = QMenuBar()
 
         file_bar = menu_bar.addMenu(self.tr('&File'))
@@ -168,6 +193,8 @@ class TGExplorer(QMainWindow):
         file_bar.addSeparator()
         file_bar.addAction(self.project_settings_act)
         file_bar.addSeparator()
+        file_bar.addAction(self.save_changes_act)
+        file_bar.addSeparator()
         file_bar.addAction(self.quit_act)
 
         edit_bar = menu_bar.addMenu(self.tr('&Edit'))
@@ -175,20 +202,21 @@ class TGExplorer(QMainWindow):
         edit_bar.addAction(self.find_act)
         edit_bar.addAction(self.map_annotation_act)
         edit_bar.addSeparator()
+        edit_bar.addAction(self.open_praat_act)
+        edit_bar.addSeparator()
         edit_bar.addAction(self.preferences_act)
 
-        data_bar = menu_bar.addMenu(self.tr('&Data'))
+        data_bar = menu_bar.addMenu(self.tr('&View'))
         data_bar.addAction(self.sort_az_act)
         data_bar.addAction(self.sort_za_act)
         data_bar.addSeparator()
         data_bar.addAction(self.filter_act)
-        data_bar.addSeparator()
-        data_bar.addAction(self.open_praat_act)
 
         self.setMenuBar(menu_bar)
 
-    def init_toolbar(self):
+    def create_toolbar(self):
         data_toolbar = QToolBar(self)
+        data_toolbar.addAction(self.save_changes_act)
         data_toolbar.addAction(self.open_praat_act)
         data_toolbar.addAction(self.filter_act)
 
@@ -200,7 +228,7 @@ class TGExplorer(QMainWindow):
         selection_model.currentColumnChanged.connect(self.on_sorting_act)
         self.setCentralWidget(self.editor_view)
 
-    def init_dialogs(self):
+    def create_dialogs(self):
         self.preferences_dlg = PreferencesDialog(self)
         self.preferences_dlg.accepted.connect(self.on_preferences)
 
@@ -402,9 +430,10 @@ class TGExplorer(QMainWindow):
         if not indexes:
             return
         index = indexes[0]
-        textgrid_path = index.data(Qt.ItemDataRole.UserRole)[0]
+        item = index.data(Qt.ItemDataRole.UserRole)
+
+        textgrid_path = item.file_path
         sound_path = textgrid_path.with_suffix('.wav')
-        interval = index.data(Qt.ItemDataRole.UserRole)[1]
 
         praat_path_ = settings.value('praat_path')
         praat_path = shutil.which(praat_path_)
@@ -431,8 +460,8 @@ class TGExplorer(QMainWindow):
             textgrid_path,
             sound_path,
             str(maximize_audibility),
-            str(interval.xmin),
-            str(interval.xmax)
+            str(item.xmin),
+            str(item.xmax)
         ]
 
         if activate_plugins:
@@ -440,6 +469,7 @@ class TGExplorer(QMainWindow):
         subprocess.run(args)
 
     def on_enabled_buttons(self, b):
+        self.save_changes_act.setEnabled(b)
         self.close_project_act.setEnabled(b)
         self.project_settings_act.setEnabled(b)
         self.open_project_act.setEnabled(b)
@@ -515,6 +545,20 @@ class TGExplorer(QMainWindow):
         column_name = current_index.model().headerData(column_index, Qt.Orientation.Horizontal)
         self.sort_az_act.setText(f'Sort by column "{column_name}" (A to Z)')
         self.sort_za_act.setText(f'Sort by column "{column_name}" (Z to A)')
+
+    def on_save_changes(self):
+        tmp_paths = set()
+        indexes = self.editor_view.modified_indexes()
+        for index in indexes:
+            src_model = index.model()
+            src_model.setData(index, False, Qt.ItemDataRole.ForegroundRole)
+
+            item = index.data(Qt.ItemDataRole.UserRole)
+            if item.file_path in tmp_paths:
+                continue
+            item.textgrid.write(item.file_path) #Save path
+            tmp_paths.add(item.file_path)
+        self.editor_view.clear_modified_indexes()
 
     def on_preferences(self):
         dict_ = self.preferences_dlg.to_dict()
