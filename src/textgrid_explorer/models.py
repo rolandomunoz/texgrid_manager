@@ -83,6 +83,12 @@ class TGTableModel(QAbstractTableModel):
                 return QBrush(QColor('lightGray'))
             return QBrush(QColor('white'))
 
+        elif role == Qt.ForegroundRole.ForegroundRole:
+            if column > 0 and item is not None:
+                if item.modified:
+                    return QBrush(QColor('blue'))
+            return QBrush(QColor('black'))
+
         elif role == Qt.ItemDataRole.EditRole:
             if column == 0:
                 return item.name
@@ -93,29 +99,47 @@ class TGTableModel(QAbstractTableModel):
             return item.text
 
         elif role == Qt.ItemDataRole.UserRole:
-            return self._data[row]
+            return item
 
         return None
 
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
-        if role != Qt.ItemDataRole.EditRole:
+        if not index.isValid():
             return False
 
-        if index.column() == 0: # pathlib.Path
-            return False
+        if role == Qt.ItemDataRole.EditRole:
+            if index.column() == 0: # pathlib.Path
+                return False
 
-        column, row = index.column(), index.row()
-        item = self._data[row][column]
+            column, row = index.column(), index.row()
+            item = self._data[row][column]
 
-        if item is None:
-            return False
+            if item is None:
+                return False
 
-        item.text = value
-        self._data[row][column] = item
+            if item.text == value:
+                return False
 
-        item.textgrid.write(item.file_path) #Change in the future
-        self.dataChanged.emit(index, index)
-        return True
+            item.text = value
+            item.modified = True
+            self._data[row][column] = item
+
+            self.dataChanged.emit(index, index)
+            return True
+
+        elif role == Qt.ForegroundRole.ForegroundRole:
+            row, col = index.row(), index.column()
+            self._data[row][col].modified = value
+            self.dataChanged.emit(index, index)
+            return True
+
+        elif role == Qt.ItemDataRole.UserRole:
+            row, col = index.row(), index.column()
+            self._data[row][col] = value
+            self.dataChanged.emit(index, index)
+            return True
+
+        return False
 
     def append_data(self, dict_):
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
