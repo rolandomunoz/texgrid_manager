@@ -32,6 +32,7 @@ from PySide6.QtCore import (
     QSettings,
     QSortFilterProxyModel,
     Qt,
+    Signal,
 )
 
 from PySide6.QtGui import (
@@ -53,6 +54,7 @@ resources_dir = resources.files('textgrid_explorer.resources')
 settings = QSettings('Gilgamesh', 'textgrid_explorer')
 
 class EditorView(QWidget):
+    save_changes = Signal(bool)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -79,6 +81,7 @@ class EditorView(QWidget):
         indexes = selection_range.indexes()
         for index in indexes:
             self._modified_indexes.add(index)
+        self.save_changes.emit(True)
 
     def filter_rows(self, key_column, str_expression):
         proxy_model = self.table_view.model()
@@ -104,10 +107,19 @@ class EditorView(QWidget):
         return self.table_view.model()
 
     def modified_indexes(self):
+        """
+        QModelIndex objects corresponding to all modified (unsaved) data
+        cells in the model
+        """
         return self._modified_indexes
 
     def clear_modified_indexes(self):
+        """
+        Clear the internal list of modified indexes, typically called after
+        a successful save operation.
+        """
         self._modified_indexes.clear()
+        self.save_changes.emit(False)
 
 class TGExplorer(QMainWindow):
 
@@ -116,9 +128,9 @@ class TGExplorer(QMainWindow):
         self.setWindowTitle('TextGrid Explorer')
         self.setMinimumSize(800, 500)
         #self.showMaximized()
-        self.init_ui()
         self.create_dialogs()
         self.create_actions()
+        self.init_ui()
         self.create_menubar()
         self.create_toolbar()
         self.on_enabled_buttons(False)
@@ -224,6 +236,7 @@ class TGExplorer(QMainWindow):
 
     def init_ui(self):
         self.editor_view = EditorView(self)
+        self.editor_view.save_changes.connect(self.save_changes_act.setEnabled)
         selection_model = self.editor_view.table_view.selectionModel()
         selection_model.currentColumnChanged.connect(self.on_sorting_act)
         self.setCentralWidget(self.editor_view)
@@ -490,6 +503,7 @@ class TGExplorer(QMainWindow):
     def on_close_project(self):
         self.editor_view.set_table_data([], [])
         self.on_enabled_buttons(False)
+        self.editor_view.clear_modified_indexes()
 
     def on_load_data(self):
         # Get variables from a dialog
@@ -515,6 +529,7 @@ class TGExplorer(QMainWindow):
 
         # Enable buttons
         self.on_enabled_buttons(True)
+        self.save_changes_act.setEnabled(False)
 
     def on_filter_rows(self):
         field, value = self.simple_filter_dlg.data()
