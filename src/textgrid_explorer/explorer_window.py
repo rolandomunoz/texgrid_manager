@@ -556,6 +556,8 @@ class TGExplorer(QMainWindow):
         Update the name of the `Sort by column (A to Z)` command with the
         selected column name.
         """
+        if not current_index.isValid():
+            return
         column_index = current_index.column()
         column_name = current_index.model().headerData(column_index, Qt.Orientation.Horizontal)
         self.sort_az_act.setText(f'Sort by column "{column_name}" (A to Z)')
