@@ -260,6 +260,18 @@ class TGExplorer(QMainWindow):
         self.map_annotations_dlg = MapAnnotationDialog(self)
         self.map_annotations_dlg.accepted.connect(self.on_map_annotations)
 
+    def closeEvent(self, e):
+        indexes = self.editor_view.modified_indexes()
+        if indexes:
+            response = QMessageBox.question(
+                self,
+                'Save Changes?',
+                'You have unsaved changes. Do you want to save them before quitting?'
+            )
+            if response == QMessageBox.StandardButton.Yes:
+                self.on_save_changes()
+        super().closeEvent(e)
+
     def open_preferences_dlg(self):
         praat_path = settings.value('praat_path')
         praat_maximize_audibility = settings.value('praat_maximize_audibility')
@@ -501,6 +513,16 @@ class TGExplorer(QMainWindow):
         pass
 
     def on_close_project(self):
+        indexes = self.editor_view.modified_indexes()
+        if indexes:
+            response = QMessageBox.question(
+                self,
+                'Save Changes?',
+                'You have unsaved changes. Do you want to save them before closing the project?'
+            )
+            if response == QMessageBox.StandardButton.Yes:
+                self.on_save_changes()
+
         self.editor_view.set_table_data([], [])
         self.on_enabled_buttons(False)
         self.editor_view.clear_modified_indexes()
