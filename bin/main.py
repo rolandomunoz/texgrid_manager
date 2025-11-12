@@ -17,6 +17,8 @@
 # nuitka-project: --mode=standalone
 # nuitka-project: --output-filename=textgrid_explorer_{OS}_{Arch}
 # nuitka-project: --enable-plugin=pyside6
+# nuitka-project: --include-package-data=textgrid_explorer
+# nuitka-project: --include-package-data=mytextgrid
 import sys
 from pathlib import Path
 
