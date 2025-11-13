@@ -485,6 +485,7 @@ class TGExplorer(QMainWindow):
             textgrid_path,
             sound_path,
             str(maximize_audibility),
+            str(item.tier.index + 1),
             str(item.xmin),
             str(item.xmax)
         ]
