@@ -274,11 +274,13 @@ class TGExplorer(QMainWindow):
 
     def open_preferences_dlg(self):
         praat_path = settings.value('praat_path')
+        praat_sound_extensions = settings.value('praat_sound_extensions')
         praat_maximize_audibility = settings.value('praat_maximize_audibility')
         praat_activate_plugins = settings.value('praat_activate_plugins')
 
         self.preferences_dlg.set_values(
             praat_path,
+            praat_sound_extensions,
             bool(int(praat_maximize_audibility)),
             bool(int(praat_activate_plugins)),
         )
@@ -603,5 +605,6 @@ class TGExplorer(QMainWindow):
     def on_preferences(self):
         dict_ = self.preferences_dlg.to_dict()
         settings.setValue('praat_path', dict_['praat_path'])
+        settings.setValue('praat_sound_extensions', dict_['praat_sound_extensions'])
         settings.setValue('praat_maximize_audibility', int(dict_['praat_maximize_audibility']))
         settings.setValue('praat_activate_plugins', int(dict_['praat_activate_plugins']))

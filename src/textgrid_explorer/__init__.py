@@ -41,6 +41,9 @@ def init_preferences():
     if not settings.contains('praat_maximize_audibility'):
         settings.setValue('praat_maximize_audibility', 0)
 
+    if not settings.contains('praat_sound_extensions'):
+        settings.setValue('praat_sound_extensions', '.wav;.aiff')
+
     if not settings.contains('praat_activate_plugins'):
         settings.setValue('praat_activate_plugins', 0)
 
