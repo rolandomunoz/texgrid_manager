@@ -22,9 +22,10 @@ def read_textgrid(path):
     try:
         tg = mytextgrid.read_from_file(path, encoding='utf-8')
         tg.file_path = path
-        for tier in tg:
+        for index, tier in enumerate(tg):
             tg.file_path = path
             tg.parent = tg
+            tier.index = index
             for item in tier:
                 item.file_path =path
                 item.tier = tier
