@@ -16,8 +16,9 @@ form: "Open file"
     infile: "Textgrid path", ""
     infile: "Sound path", ""
     boolean: "Maximize audibility", "1"
-    real: "Start_selection", "0.0"
-    real: "End_selection", "0.1"
+    integer: "Tier position", "0"
+    real: "Start selection", "0.0"
+    real: "End selection", "0.1"
 endform
 
 tg = Read from file: textgrid_path$
@@ -36,11 +37,14 @@ selectObject: objects#
 View & Edit
 
 editor: tg
+# Select tier position
+for i to tier_position - 1
+    Select next tier
+endfor
 Zoom: start_selection-0.1, end_selection+0.1
 Select: start_selection, end_selection
 
-
-beginPause: "TGManager"
+beginPause: "TextGrid Explorer"
 clicked = endPause: "Save", "Quit", 2, 2
 
 if clicked == 1
