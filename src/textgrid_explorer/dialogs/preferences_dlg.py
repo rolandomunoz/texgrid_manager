@@ -43,7 +43,7 @@ class PraatTab(QWidget):
         )
         form = QFormLayout()
         form.addRow('Praat path:', self.path_ed)
-        form.addRow('Sound extensions:', self.sound_extensions_ed)
+        form.addRow('Open audio files with extensions:', self.sound_extensions_ed)
         form.addRow(self.maximize_audibility_checkbox)
         form.addRow(self.plugins_checkbox)
         self.setLayout(form)
