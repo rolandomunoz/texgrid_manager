@@ -456,11 +456,27 @@ class TGExplorer(QMainWindow):
         indexes = table_view.selectedIndexes()
         if not indexes:
             return
-        index = indexes[0]
-        item = index.data(Qt.ItemDataRole.UserRole)
 
+        index = indexes[0]
+
+        if not index.isValid():
+            return
+
+        if index.column() == 0:
+            return
+
+        item = index.data(Qt.ItemDataRole.UserRole)
+        if item is None:
+            return
+
+        sound_extensions = settings.value('praat_sound_extensions').split(';')
+        sound_path = ''
         textgrid_path = item.file_path
-        sound_path = textgrid_path.with_suffix('.wav')
+        for sound_ext in sound_extensions:
+            sound_path_tmp = textgrid_path.with_suffix(sound_ext)
+            if sound_path_tmp.is_file():
+                sound_path = sound_path_tmp
+                break
 
         praat_path_ = settings.value('praat_path')
         praat_path = shutil.which(praat_path_)
@@ -604,7 +620,22 @@ class TGExplorer(QMainWindow):
 
     def on_preferences(self):
         dict_ = self.preferences_dlg.to_dict()
+
+        # Normalize extensions input
+        ext_pattern = re.compile(r'\.?[a-zA-Z0-9]+')
+        ext_list = dict_['praat_sound_extensions'].split(';')
+        norm_ext_list = []
+        for sound_ext in ext_list:
+            sound_ext = sound_ext.strip()
+            if not ext_pattern.match(sound_ext):
+                continue
+            sound_ext = sound_ext if sound_ext.startswith('.') else f'.{sound_ext}'
+            if sound_ext in norm_ext_list:
+                continue
+            norm_ext_list.append(sound_ext)
+        extensions_str = ';'.join(norm_ext_list)
+
         settings.setValue('praat_path', dict_['praat_path'])
-        settings.setValue('praat_sound_extensions', dict_['praat_sound_extensions'])
+        settings.setValue('praat_sound_extensions', extensions_str)
         settings.setValue('praat_maximize_audibility', int(dict_['praat_maximize_audibility']))
         settings.setValue('praat_activate_plugins', int(dict_['praat_activate_plugins']))
