@@ -13,9 +13,8 @@
 #
 #   You should have received a copy of the GNU General Public License along
 #   with this program.  If not, see <https://www.gnu.org/licenses/>.
-from textgrid_explorer.dialogs.filter_view import FilterView
 from textgrid_explorer.dialogs.replace_dlg import FindAndReplaceDialog
-from textgrid_explorer.dialogs.replace_dlg import MapAnnotationDialog 
+from textgrid_explorer.dialogs.replace_dlg import MapAnnotationDialog
 from textgrid_explorer.dialogs.filter_view import FilterByDialog
 from textgrid_explorer.dialogs.project_dlg import NewProjectDialog
 from textgrid_explorer.dialogs.project_dlg import OpenProjectDialog

@@ -33,6 +33,7 @@ from PySide6.QtCore import (
     QSortFilterProxyModel,
     Qt,
     Signal,
+    Slot,
 )
 
 from PySide6.QtGui import (
@@ -82,11 +83,6 @@ class EditorView(QWidget):
         for index in indexes:
             self._modified_indexes.add(index)
         self.save_changes.emit(True)
-
-    def filter_rows(self, key_column, str_expression):
-        proxy_model = self.table_view.model()
-        proxy_model.setFilterKeyColumn(key_column)
-        proxy_model.setFilterRegularExpression(str_expression)
 
     def set_table_data(self, headers, data):
         """
@@ -173,7 +169,7 @@ class TGExplorer(QMainWindow):
 
         funnel_icon = QIcon(QPixmap(':icons/funnel.png'))
         self.filter_act = QAction(funnel_icon, self.tr('&Filter by...'), self)
-        self.filter_act.triggered.connect(self.open_filter_dlg)
+        self.filter_act.triggered.connect(self.popup_filter_dlg)
 
         praat_icon = QIcon(QPixmap(':icons/praat_icon.png'))
         self.open_praat_act = QAction(praat_icon, self.tr('&Open selection in Praat'), self)
@@ -183,17 +179,17 @@ class TGExplorer(QMainWindow):
         # Edit
         self.find_and_replace_act = QAction(self.tr('&Find and replace...'), self)
         self.find_and_replace_act.setShortcut('Ctrl+H')
-        self.find_and_replace_act.triggered.connect(lambda: self.open_find_and_replace_dlg(1))
+        self.find_and_replace_act.triggered.connect(lambda: self.popup_find_and_replace_dlg(1))
 
         self.find_act = QAction(self.tr('&Find...'), self)
         self.find_act.setShortcut('Ctrl+F')
-        self.find_act.triggered.connect(lambda: self.open_find_and_replace_dlg(0))
+        self.find_act.triggered.connect(lambda: self.popup_find_and_replace_dlg(0))
 
         self.map_annotation_act = QAction(self.tr('&Map annotation...'), self)
-        self.map_annotation_act.triggered.connect(self.open_map_annotation_dlg)
+        self.map_annotation_act.triggered.connect(self.popup_map_annotation_dlg)
 
         self.preferences_act = QAction(self.tr('&Preferences...'), self)
-        self.preferences_act.triggered.connect(self.open_preferences_dlg)
+        self.preferences_act.triggered.connect(self.popup_preferences_dlg)
 
     def create_menubar(self):
         menu_bar = QMenuBar()
@@ -249,7 +245,7 @@ class TGExplorer(QMainWindow):
         self.new_project_dlg.accepted.connect(self.on_load_data)
 
         self.simple_filter_dlg = FilterByDialog(self)
-        self.simple_filter_dlg.accepted.connect(self.on_filter_rows)
+        self.simple_filter_dlg.filtered_by.connect(self.on_filter_rows)
 
         self.find_and_replace_dlg = FindAndReplaceDialog(self)
         self.find_and_replace_dlg.replace_all_clicked.connect(self.on_replace_all)
@@ -272,7 +268,7 @@ class TGExplorer(QMainWindow):
                 self.on_save_changes()
         super().closeEvent(e)
 
-    def open_preferences_dlg(self):
+    def popup_preferences_dlg(self):
         praat_path = settings.value('praat_path')
         praat_sound_extensions = settings.value('praat_sound_extensions')
         praat_maximize_audibility = settings.value('praat_maximize_audibility')
@@ -286,16 +282,20 @@ class TGExplorer(QMainWindow):
         )
         self.preferences_dlg.open()
 
-    def open_filter_dlg(self):
+    def popup_filter_dlg(self):
         proxy_model = self.editor_view.table_view.model()
         ncols = proxy_model.columnCount()
         orientation = Qt.Orientation.Horizontal
         fields = [proxy_model.headerData(i, orientation) for i in range(ncols)]
 
         self.simple_filter_dlg.set_fields(fields)
+        index = self.editor_view.table_view.selectionModel().currentIndex()
+        if index.isValid():
+            column_index = index.column()
+            self.simple_filter_dlg.set_index_field(column_index)
         self.simple_filter_dlg.show()
 
-    def open_find_and_replace_dlg(self, tab_index=0):
+    def popup_find_and_replace_dlg(self, tab_index=0):
         column_index = -1
         column_names = []
         find_pattern = ''
@@ -324,7 +324,7 @@ class TGExplorer(QMainWindow):
         self.find_and_replace_dlg.display_tab(tab_index)
         self.find_and_replace_dlg.show()
 
-    def open_map_annotation_dlg(self):
+    def popup_map_annotation_dlg(self):
         """
         Prepare and show non-modal dialog.
         """
@@ -572,9 +572,11 @@ class TGExplorer(QMainWindow):
         self.on_enabled_buttons(True)
         self.save_changes_act.setEnabled(False)
 
-    def on_filter_rows(self):
-        field, value = self.simple_filter_dlg.data()
-        self.editor_view.filter_rows(field, value)
+    @Slot(int, str, str)
+    def on_filter_rows(self, column_index, column_name, pattern):
+        proxy_model = self.editor_view.model()
+        proxy_model.setFilterKeyColumn(column_index)
+        proxy_model.setFilterRegularExpression(pattern)
 
     def on_sort_az(self):
         table_view = self.editor_view.table_view
