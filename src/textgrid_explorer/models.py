@@ -152,7 +152,7 @@ class TGTableModel(QAbstractTableModel):
         if index is None:
             index = QModelIndex()
 
-        my_flags = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled
+        my_flags = super().flags(index)
 
         if index.column() == 0:
             return my_flags
